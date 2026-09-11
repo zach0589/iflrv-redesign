@@ -80,6 +80,7 @@ def nav_html(active):
 # ---------------------------------------------------------------- chrome
 def header(active):
     return f'''
+<div class="site-top">
 <div class="utility"><div class="wrap-wide">
   <div class="utility-awards">
     <span>&#9733; Idaho&#39;s Best RV Park &mdash; Statewide</span>
@@ -102,7 +103,8 @@ def header(active):
       <span></span><span></span><span></span>
     </button>
   </div>
-</header>'''
+</header>
+</div>'''
 
 def footer():
     return f'''
@@ -224,7 +226,7 @@ def booking_widget(compact=False):
     """The single biggest fix: let people search before they leave for NewBook."""
     return f'''
 <form class="booking" data-booking-form>
-  <div class="booking-grid">
+  <div class="booking-grid booking-grid-6">
     <div class="booking-field">
       <label for="arrive{compact}">Arrive</label>
       <input type="date" id="arrive{compact}" name="arrive" required>
@@ -232,6 +234,17 @@ def booking_widget(compact=False):
     <div class="booking-field">
       <label for="depart{compact}">Depart</label>
       <input type="date" id="depart{compact}" name="depart" required>
+    </div>
+    <div class="booking-field">
+      <label for="guests{compact}">Guests</label>
+      <select id="guests{compact}" name="adults">
+        <option value="2">2 guests</option>
+        <option value="1">1 guest</option>
+        <option value="3">3 guests</option>
+        <option value="4">4 guests</option>
+        <option value="5">5 guests</option>
+        <option value="6">6+ guests</option>
+      </select>
     </div>
     <div class="booking-field">
       <label for="rig{compact}">Rig length</label>
@@ -326,18 +339,18 @@ DRIVE = [
 ]
 
 SITE_CARDS = [
-    ('/stay/rv-sites/', '/media/f3hlpx5h/idaho-falls-luxury-rv-park-20230519-038-scaled-1.jpg',
-     'A paved pull-through RV site with a motorhome parked beside its picnic table',
+    ('/stay/rv-sites/', '/media/120ohllo/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-001.jpg',
+     'A motorhome and tow vehicle on a paved, landscaped pull-through site',
      'Pull-Through Full Hookup', '32 sites',
      "Pull in, level up, and never unhitch. 36&#39; &times; 80&#39; of paved pad with 50/30-amp power, water, sewer and a hotspot of your own.",
      ['36&#39; &times; 80&#39; paved &amp; level', '50 &amp; 30 amp full hookup', 'Fire pit + artisan picnic table']),
-    ('/stay/rv-sites/', '/media/awnhkm3p/casita-back-in-opt.jpg',
-     'A back-in RV site with a paved pad, picnic table and fire pit',
+    ('/stay/rv-sites/', '/media/kwcbbwkw/3-1-1.png',
+     'A travel trailer with its awning out and camp chairs set up on a paved site',
      'Back-In Full Hookup', '26 sites',
      'The same oversized paved footprint as our pull-throughs, angled to open your patio side toward the green space.',
      ['36&#39; &times; 80&#39; paved &amp; level', '50 &amp; 30 amp full hookup', 'Patio side faces open lawn']),
-    ('/stay/casitas/', '/media/ldiedk2y/sprinterland-opt.jpg',
-     'A SprinterLand casita shelter with Adirondack chairs, party lights and a built-in barbecue',
+    ('/stay/casitas/', '/media/yunlwroj/dsc00664.jpg',
+     'A camper van parked beside its SprinterLand casita shelter and fire pit',
      'SprinterLand Casita', '10 sites',
      'Your own covered outdoor room: ceiling heaters, party lights, two Adirondack chairs and a masonry charcoal BBQ.',
      ['3-sided shelter w/ privacy walls', 'Electric ceiling heaters', 'Masonry charcoal barbecue']),
@@ -406,6 +419,19 @@ def home():
   </div>
 </section>
 
+<section class="section-sm">
+  <div class="wrap">
+    <div class="awards">
+      <figure>{img('/media/li4hq32r/img_3424.png', "Idaho's Best of 2025 statewide winner badge", 260)}
+        <figcaption>Idaho&#39;s Best 2025 &mdash; Statewide</figcaption></figure>
+      <figure>{img('/media/ettnarzb/img_3425.png', "Idaho's Best of 2025 Eastern Idaho winner badge", 260)}
+        <figcaption>Idaho&#39;s Best 2025 &mdash; Eastern Idaho</figcaption></figure>
+      <figure>{img('/media/3rcjp3ob/best-of-the-best-2025.png', 'RV Life Best of the Best campground 2025 winner badge', 260)}
+        <figcaption>RV Life Best of the Best 2025</figcaption></figure>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="section-head center">
@@ -450,8 +476,8 @@ def home():
 <section class="section">
   <div class="wrap">
     <div class="split reverse">
-      <div class="split-media">{img('/media/vopjavqh/lounge.png',
-        'The check-in lodge lounge with comfortable seating and a fireplace', 1000)}</div>
+      <div class="split-media">{img('/media/vxxccmwh/19.jpg',
+        'The lodge lounge with leather seating, rugs and a stone fireplace', 1000)}</div>
       <div>
         <span class="eyebrow">The park</span>
         <h2>Built by a homebuilder, not a developer</h2>
@@ -475,7 +501,7 @@ def home():
   <div class="wrap">
     <div class="split">
       <div class="split-media">{img('/media/12cbkpnp/sunriselandscape.jpg',
-        'Sunrise over the park with mountains in the distance', 1000)}</div>
+        'The park and the Snake River from the air at sunrise', 1000)}</div>
       <div>
         <span class="eyebrow">Our story</span>
         <h2>It started as a drive-in theater</h2>
@@ -598,8 +624,8 @@ def stay():
 # ================================================================ RV SITES
 def rv_sites():
     body = crumbs([('Home', '/'), ('Stay', '/stay/'), ('RV Sites', None)]) + f'''
-{page_hero('/media/f3hlpx5h/idaho-falls-luxury-rv-park-20230519-038-scaled-1.jpg',
-  'A large motorhome parked on a paved pull-through site',
+{page_hero('/media/eslbo5ci/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-016.jpg',
+  'A motorhome pulling into a paved site at the park',
   'RV Sites', 'Pull-through &amp; back-in',
   '58 of our 59 sites, every one of them 36 by 80 feet of paved, level, fully serviced pad.')}
 
@@ -621,8 +647,8 @@ def rv_sites():
         </ul>
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check availability</a></p>
       </div>
-      <div class="split-media">{img('/media/gd3onnwn/idaho-falls-luxury-rv-park-20230519-019-scaled.jpg',
-        'Paved pull-through sites lined up with picnic tables and fire pits', 1000)}</div>
+      <div class="split-media">{img('/media/fgwolhjr/dji_0104.jpg',
+        'Rows of paved full-hookup sites seen from the air', 1000)}</div>
     </div>
   </div>
 </section>
@@ -644,8 +670,8 @@ def rv_sites():
         </ul>
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check availability</a></p>
       </div>
-      <div class="split-media">{img('/media/dkxpsbza/casita-back-in.jpg',
-        'A back-in site with an RV, patio and fire pit beside open lawn', 1000)}</div>
+      <div class="split-media">{img('/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg',
+        'A fifth wheel parked on a site beside open lawn', 1000)}</div>
     </div>
   </div>
 </section>
@@ -674,8 +700,8 @@ def rv_sites():
   </div>
 </section>
 
-{cta_band('/media/btbnmjiz/idaho-falls-luxury-rv-park-20230519-033-scaled.jpg',
-  'RVs parked on paved sites at golden hour',
+{cta_band('/media/uybnzgyf/dji_0055.jpg',
+  'RVs parked on paved sites beside open lawn',
   'Book a pull-through', 'Check live availability for your dates and rig length.')}
 '''
     return page('/stay/rv-sites/', 'Pull-Through &amp; Back-In RV Sites | Idaho Falls Luxury RV Park',
@@ -688,11 +714,11 @@ def rv_sites():
 def casitas():
     feats = [
         ('Shelter', 'A cozy 3-sided outdoor shelter with 5-foot privacy walls, to keep the weather off.',
-         '/media/so0c5cen/sprinterland-2-opt.jpg', 'A casita shelter with privacy walls beside a paved RV site'),
+         '/media/irjnazpz/fallcasita57aiedit.png', 'Inside a casita shelter, with privacy walls and Adirondack chairs'),
         ('Heating', 'Built-in electric ceiling heaters take the chill off mornings and evenings.',
-         '/media/dikh3to4/sprinterland-02.jpg', 'Inside a casita shelter looking out toward the site'),
+         '/media/wigeroai/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-011.jpg', 'A casita shelter and fire pit in autumn'),
         ('Seating', 'Two Adirondack chairs for stretching your legs out and doing nothing in particular.',
-         '/media/irjnazpz/fallcasita57aiedit.png', 'Adirondack chairs under a casita shelter in autumn'),
+         '/media/irjnazpz/fallcasita57aiedit.png', 'A camper van set up beside its casita, awning out'),
         ('Grilling', 'A masonry charcoal barbecue built into the shelter. Charcoal is in the camp store.',
          '/media/tsckx5wy/fallcasita57charcuterie.png', 'A charcuterie board laid out on the casita table'),
     ]
@@ -704,7 +730,7 @@ def casitas():
 
     body = crumbs([('Home', '/'), ('Stay', '/stay/'), ('SprinterLand Casitas', None)]) + f'''
 {page_hero('/media/ldiedk2y/sprinterland-opt.jpg',
-  'A SprinterLand casita lit by party lights at dusk',
+  'A SprinterLand casita shelter beside a paved site',
   'SprinterLand', 'Ten sites with an outdoor room attached',
   'Built for adventure vans and teardrops — and for anyone who would rather live outside the rig than inside it.')}
 
@@ -738,8 +764,8 @@ def casitas():
           <li>Inside a gated park two miles from downtown</li>
         </ul>
       </div>
-      <div class="split-media">{img('/media/so0c5cen/sprinterland-2-opt.jpg',
-        'A camper van parked beside its casita shelter at a SprinterLand site', 1000)}</div>
+      <div class="split-media">{img('/media/2f4jr1ka/dsc00665.jpg',
+        'A Sprinter van parked at its site beside the picnic table', 1000)}</div>
     </div>
   </div>
 </section>
@@ -757,14 +783,14 @@ def casitas():
           firepit close by. There is exactly one, so it goes early.</p>
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check if it&#39;s open</a></p>
       </div>
-      <div class="split-media">{img('/media/kfblil0x/ultimate-pull-in-2-opt.jpg',
+      <div class="split-media">{img('/media/qlbhvwn3/ultimate-pull-in-opt.jpg',
         'The Ultimate Pull-In site with its custom shelter and masonry barbecue', 1000)}</div>
     </div>
   </div>
 </section>
 
 {cta_band('/media/dikh3to4/sprinterland-02.jpg',
-  'A casita site glowing with party lights after dark',
+  'An open-air shelter and fire pit on a grassy site',
   'Ten casitas. That&#39;s it.', 'Check which dates still have one open.')}
 '''
     return page('/stay/casitas/', 'SprinterLand Casita Sites | Idaho Falls Luxury RV Park',
@@ -955,43 +981,43 @@ def rates():
     return page('/rates/', 'Rates &amp; Availability | Idaho Falls Luxury RV Park',
                 'Nightly rates by site type and season, what every rate includes, the full fee schedule and '
                 'the cancellation policy — then check live availability for your dates.',
-                body, active='/rates', has_hero=True, og_img='/media/dripxrjd/dronesunrise3.jpg')
+                body, active='/rates', has_hero=True, og_img='/media/cvcdxegg/iflrv-11.jpg')
 
 # ================================================================ AMENITIES
 AMENITIES = [
-    ('Full hookups', '/media/chubfg05/water-heater.png', 'Utility hookups at an RV site pedestal', 'Water, sewer and 50/30-amp electric at every site',
+    ('Full hookups', '/media/chubfg05/water-heater.png', 'Full-hookup sites laid out across the paved park', 'Water, sewer and 50/30-amp electric at every site',
      'Every one of the 59 sites has water, sewer and both 50-amp and 30-amp electric right at the pad, '
      'so nothing runs off your tanks and nothing runs out mid-stay.'),
-    ('Site-specific Wi-Fi', '/media/pr4lkbqp/wifi.jpg', 'A laptop connected to the park Wi-Fi at a picnic table', 'Your own hotspot, not a shared park signal',
+    ('Site-specific Wi-Fi', '/media/pr4lkbqp/wifi.jpg', 'A guest working on a laptop at the park', 'Your own hotspot, not a shared park signal',
      'Each site gets its own dedicated high-speed Wi-Fi hotspot. Stream, video call, push a work project '
      'over the line &mdash; without competing with 58 other rigs for bandwidth.'),
-    ('Private bathrooms', '/media/vlpn3soj/dsc00764.jpg', 'A private bathroom with a fully tiled shower', 'Five of them, full tile, heated floors',
+    ('Private bathrooms', '/media/qcrgezpe/21.jpg', 'A private bathroom with a fully tiled shower', 'Five of them, full tile, heated floors',
      'Five private bathrooms, each with a fully tiled shower and heated floors. An extra sink and toilet '
      'sit in the lodge, plus a powder bath.'),
-    ('The lodge &amp; fireplace', '/media/vopjavqh/lounge.png', 'The lodge lounge with comfortable seating and a fireplace', 'Plus the region&#39;s largest outdoor fireplace',
+    ('The lodge &amp; fireplace', '/media/qcxgwjfm/18-1.png', 'Guests gathered around the outdoor community fireplace', 'Plus the region&#39;s largest outdoor fireplace',
      'A welcoming check-in lodge with a lounge to work or gather in, and outside it the largest outdoor '
      'community fireplace in the region &mdash; the default meeting point once it cools off.'),
     ('Snake River &amp; Greenbelt', '/media/lbemwskp/dronesnakeriverdam.jpg', 'The Snake River seen from above beside the park', 'Fourteen paved miles, straight off the property',
      'The park opens directly onto the Idaho Falls River Walk &mdash; fourteen paved miles along the Snake '
      'River for walking, running and riding. Fishing, kayaking and paddle boarding start at the same gate.'),
-    ('Pickleball', '/media/qcrgezpe/21.jpg', 'The two pickleball courts at the park', 'Two regulation courts, equipment provided',
+    ('Pickleball', '/media/kx0d405i/iflrv-08.jpg', 'The two pickleball courts at the park', 'Two regulation courts, equipment provided',
      'Two dedicated regulation courts, first-come first-served, with equipment available so you do not '
      'have to travel with paddles.'),
     ('Dog park', '/media/hpfnwnlu/9.jpg', 'The fenced dog park with dogs running off leash', 'Fenced, off-leash, no breed or size restrictions',
      'A fenced dog park for off-leash play, and the Greenbelt right outside for longer runs. Well-behaved '
      'dogs of all sizes and breeds are welcome; leashes everywhere except the dog park.'),
-    ('Laundry', '/media/mlkl12n3/dsc00828.jpg', 'Washers and dryers in the on-site laundry room', 'Two rooms, open 24 hours, card-operated',
+    ('Laundry', '/media/lbodjrcc/1-1-scaled-1.jpg', 'Washers and dryers in the on-site laundry room', 'Two rooms, open 24 hours, card-operated',
      'Two on-site laundry rooms with five washers and five dryers between them, available around the '
      'clock and operated by credit card.'),
     ('Camp store', '/media/0znjvnro/camp-store-opt.jpg', 'Shelves of supplies and souvenirs in the camp store', 'Essentials, souvenirs, ice and firewood delivered',
      'Last-minute essentials, local products and fun souvenirs. Ice and firewood are available, and we '
      'will deliver them to your site.'),
-    ('Playground &amp; lawn', '/media/qivjkqrl/dsc00718.jpg', 'The playground and open lawn area', 'Swings, a climbing structure and room to run',
+    ('Playground &amp; lawn', '/media/sallnm0f/dsc00831.jpg', 'Children playing on the playground', 'Swings, a climbing structure and room to run',
      'Swings, a small climbing structure and a large open lawn for frisbee or catch, with safe paved '
      'roads throughout the park.'),
-    ('Complimentary bikes', '/media/3gtd10jz/trailgate2.jpg', 'Complimentary beach cruiser bikes beside the Greenbelt trail', 'Beach cruisers, free for guests',
+    ('Complimentary bikes', '/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg', 'A rack of yellow beach cruiser bikes available to guests', 'Beach cruisers, free for guests',
      'Beach cruiser bikes are available at no charge for riding the Greenbelt or heading into town.'),
-    ('Gated &amp; secure', '/media/gxyf1d2a/bus-stop.png', 'The gated entrance to the park', 'Access codes issued to registered guests only',
+    ('Gated &amp; secure', '/media/cqhp0zsx/img_6459-1.jpg', 'The gated entrance to the park', 'Access codes issued to registered guests only',
      'The property is gated, and entry codes go to registered guests only. Quiet hours are observed.'),
 ]
 
@@ -1027,8 +1053,8 @@ def amenities():
   </div>
 </section>
 
-{cta_band('/media/f2dbbec3/idaho-falls-luxury-rv-park-20230519-011-1.jpg',
-  'Guests relaxing at the park in the evening',
+{cta_band('/media/lusm24um/dsc00756.jpg',
+  'Guests and bikes outside an RV at the park',
   'See it for yourself', 'Take the 360&deg; virtual tour, or just book the dates.',
   primary=('Virtual tour &amp; gallery', '/park/gallery/'))}
 '''
@@ -1098,8 +1124,8 @@ def park_map():
   </div>
 </section>
 
-{cta_band('/media/uybnzgyf/dji_0055.jpg',
-  'Aerial view of the full park layout',
+{cta_band('/media/fgwolhjr/dji_0104.jpg',
+  'The park and the Snake River from the air',
   'Found your spot?', 'Check which sites are open on your dates.')}
 '''
     return page('/park/map/', 'Park Map | Idaho Falls Luxury RV Park',
@@ -1109,32 +1135,36 @@ def park_map():
 
 # ================================================================ GALLERY
 GALLERY = [
-    ('/media/xa1hraq3/iflrv-01.jpg', 'RVs parked on paved sites with mountains behind the park'),
-    ('/media/va4dcxhk/iflrv-02.jpg', 'A paved site with picnic table and fire pit at golden hour'),
-    ('/media/ffkm4beq/iflrv-03.jpg', 'Looking down a row of full-hookup sites'),
-    ('/media/pzioqoyq/iflrv-04.jpg', 'The lodge exterior at dusk'),
-    ('/media/tuqnbdu5/iflrv-05.jpg', 'A motorhome on a pull-through site'),
-    ('/media/iaqn00nh/iflrv-06.jpg', 'The outdoor community fireplace lit in the evening'),
-    ('/media/npilfqz4/iflrv-07.jpg', 'Paved roads running between landscaped sites'),
-    ('/media/kx0d405i/iflrv-08.jpg', 'A casita shelter with party lights'),
-    ('/media/ipnbdm14/iflrv-10.jpg', 'Guests gathered around the fire pit'),
-    ('/media/cvcdxegg/iflrv-11.jpg', 'The park lawn and playground area'),
-    ('/media/p2fokm4n/iflrv-12.jpg', 'Evening light across the RV sites'),
-    ('/media/ejujv3c2/iflrv-13.jpg', 'A wide view of the park from the entrance'),
-    ('/media/0ivgvqeu/iflrv-14.jpg', 'Sites backing onto open green space'),
-    ('/media/3ybavy0p/iflrv-15.jpg', 'The camp store and lodge entrance'),
-    ('/media/cy0lrm2y/droneparknexttoriver.jpg', 'Aerial view showing the park alongside the Snake River'),
+    ('/media/cy0lrm2y/droneparknexttoriver.jpg', 'The park alongside the Snake River from the air'),
     ('/media/xn3bssaz/dronesunset.jpg', 'Sunset from above the park'),
-    ('/media/lbemwskp/dronesnakeriverdam.jpg', 'The Snake River and dam from the air'),
-    ('/media/cgdhnbvl/dronefall.png', 'The park from above in autumn colors'),
-    ('/media/ldiedk2y/sprinterland-opt.jpg', 'A SprinterLand casita at dusk'),
-    ('/media/2hbfonwd/ultimate-pull-in.jpg', 'The Ultimate Pull-In site and its shelter'),
-    ('/media/vopjavqh/lounge.png', 'The lodge lounge with seating and a fireplace'),
-    ('/media/0znjvnro/camp-store-opt.jpg', 'Shelves in the camp store'),
-    ('/media/qcrgezpe/21.jpg', 'The pickleball courts'),
+    ('/media/0ivgvqeu/iflrv-14.jpg', 'A rainbow arcing over the RV sites'),
+    ('/media/vxxccmwh/19.jpg', 'The lodge lounge with leather seating and a stone fireplace'),
+    ('/media/qcxgwjfm/18-1.png', 'Guests gathered around the outdoor community fireplace'),
+    ('/media/ejujv3c2/iflrv-13.jpg', 'The lodge with RVs parked outside'),
+    ('/media/va4dcxhk/iflrv-02.jpg', 'The lodge exterior and its stone chimney'),
+    ('/media/trtdpu3f/idaho-falls-luxury-rv-park-20230520-047-scaled.jpg', 'Inside the check-in lodge'),
+    ('/media/0znjvnro/camp-store-opt.jpg', 'Inside the camp store'),
+    ('/media/ed0cytiu/dsc00767.jpg', 'Bundles of firewood for sale at the park'),
+    ('/media/lbodjrcc/1-1-scaled-1.jpg', 'The on-site laundry room'),
+    ('/media/qcrgezpe/21.jpg', 'A private bathroom with a fully tiled shower'),
+    ('/media/ldiedk2y/sprinterland-opt.jpg', 'A casita shelter beside a paved site'),
+    ('/media/2eafmd2d/casita-back-in-2.jpg', 'Inside a casita, with privacy walls and Adirondack chairs'),
+    ('/media/pzioqoyq/iflrv-04.jpg', 'The SprinterLand sign hanging under a casita shelter'),
+    ('/media/tsckx5wy/fallcasita57charcuterie.png', 'A charcuterie board laid out at a casita'),
+    ('/media/2hbfonwd/ultimate-pull-in.jpg', 'The Ultimate Pull-In shelter, picnic table and fire pit'),
+    ('/media/tuqnbdu5/iflrv-05.jpg', 'A fire pit on the open lawn'),
+    ('/media/l2efwnz2/img_0329-scaled-1.jpeg', 'One of the custom artisan picnic tables'),
+    ('/media/kx0d405i/iflrv-08.jpg', 'The pickleball courts'),
     ('/media/hpfnwnlu/9.jpg', 'The fenced dog park'),
-    ('/media/3gtd10jz/trailgate2.jpg', 'Complimentary beach cruiser bikes by the Greenbelt trail'),
-    ('/media/12cbkpnp/sunriselandscape.jpg', 'Sunrise over the park and the mountains beyond'),
+    ('/media/sallnm0f/dsc00831.jpg', 'Children playing on the playground'),
+    ('/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg', 'Beach cruiser bikes available to guests'),
+    ('/media/ogwabbyu/img_0357-scaled-1.jpg', 'The gate onto the Idaho Falls Greenbelt trail'),
+    ('/media/lbemwskp/dronesnakeriverdam.jpg', 'The Snake River and dam from the air'),
+    ('/media/pgnf21pp/mws-still-01-1.png', 'The waterfalls on the Snake River in downtown Idaho Falls'),
+    ('/media/cgdhnbvl/dronefall.png', 'The park from above in autumn'),
+    ('/media/12cbkpnp/sunriselandscape.jpg', 'Sunrise over the park and river'),
+    ('/media/3ybavy0p/iflrv-15.jpg', 'Sunset colour over the park'),
+    ('/media/cqhp0zsx/img_6459-1.jpg', 'The gated entrance to the park'),
 ]
 
 def gallery():
@@ -1335,8 +1365,8 @@ def policies():
   </div>
 </section>
 
-{cta_band('/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg',
-  'Evening at the park with sites lit up',
+{cta_band('/media/dokcru1q/tempimagesjkrtz-1.jpg',
+  'The park entrance sign lit at dusk',
   'Questions we did not answer?', 'The office picks up.',
   primary=('Contact us', '/contact/'))}
 '''
@@ -1349,8 +1379,8 @@ def policies():
 def explore():
     rows = ''.join(f'<tr><th scope="row">{n}</th><td>{m}</td><td>{t}</td></tr>' for n, m, t in DRIVE)
     trips = [
-        ('Yellowstone National Park', '/media/fcbf4o0t/shutterstock_1446720347-1024x683-1.jpg',
-         'A bison on a road in Yellowstone National Park',
+        ('Yellowstone National Park', '/media/fgwolhjr/dji_0104.jpg',
+         'The park from the air, two hours from Yellowstone&#39;s west entrance',
          'About 2 hours north on Highway 20 to the West Entrance. Idaho Falls is the closest major city '
          'to that gate, which is why so many people base here instead of fighting for a pad in a gateway town.'),
         ('Grand Teton &amp; Jackson Hole', '/media/ugoembul/grandtargheeskiresort-1024x699.jpg',
@@ -1362,7 +1392,7 @@ def explore():
          'A lava field the Apollo astronauts trained on, roughly 90 minutes west. Strange, stark, and '
          'completely unlike everything else within a day of here.'),
         ('Island Park &amp; Sun Valley', '/media/12cbkpnp/sunriselandscape.jpg',
-         'Mountain landscape at sunrise in eastern Idaho',
+         'Sunrise over eastern Idaho from above the park',
          'Island Park sits between here and Yellowstone&#39;s west side; Sun Valley is a longer but very '
          'worthwhile run west. Both are comfortable day trips from a seasonal site.'),
     ]
@@ -1407,6 +1437,10 @@ def explore():
       <h2>What is within a tank of fuel</h2>
     </div>
     <div class="grid g4">{cards}</div>
+    {PROTO('<b>These four cards reuse park photography.</b> Your media library has no Yellowstone or '
+           'Teton imagery in it, and nothing here pretends otherwise &mdash; licensed shots of the west '
+           'entrance, the Tetons and Jackson would make this the strongest page on the site, because it '
+           'is the search everyone actually runs.')}
   </div>
 </section>
 
@@ -1428,8 +1462,8 @@ def explore():
           <li>Melaleuca Field &mdash; minor league baseball on a summer night</li>
         </ul>
       </div>
-      <div class="split-media">{img('/media/aexdcpx5/idahofallsfarmersmarket.jpg',
-        'Stalls and shoppers at the Idaho Falls farmers market', 1000)}</div>
+      <div class="split-media">{img('/media/pgnf21pp/mws-still-01-1.png',
+        'The waterfalls on the Snake River in downtown Idaho Falls', 1000)}</div>
     </div>
   </div>
 </section>
@@ -1615,21 +1649,21 @@ def faq():
   </div>
 </section>
 <section class="section" style="padding-top:0"><div class="wrap">{groups}</div></section>
-{cta_band('/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg',
-  'RVs on paved sites in the late afternoon',
+{cta_band('/media/uybnzgyf/dji_0055.jpg',
+  'RVs parked on paved sites beside open lawn',
   'Answered?', 'Check availability for your dates.')}
 '''
     return page('/faq/', 'Frequently Asked Questions | Idaho Falls Luxury RV Park',
                 'Drive times to Yellowstone and the Tetons, hookups and rig sizes, Wi-Fi and Starlink, pets, '
                 'laundry, extended stays and more — answered.',
                 body, active='/faq', jsonld=ld,
-                og_img='/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg')
+                og_img='/media/12cbkpnp/sunriselandscape.jpg')
 
 # ================================================================ ABOUT
 def about():
     body = crumbs([('Home', '/'), ('About', None)]) + f'''
 {page_hero('/media/12cbkpnp/sunriselandscape.jpg',
-  'Sunrise over the park with the mountains beyond',
+  'The park and the Snake River from the air at sunrise',
   'Our story', 'It started as a drive-in theater',
   'Two families, one closed movie screen beside the Snake River, and a stubborn idea about what an RV park could be.')}
 
@@ -1681,7 +1715,7 @@ def about():
   </div>
 </section>
 
-{cta_band('/media/2f4jr1ka/dsc00665.jpg', 'The lodge and grounds in the evening',
+{cta_band('/media/ejujv3c2/iflrv-13.jpg', 'The lodge with RVs parked outside',
   'Come be part of it', 'Check availability for your dates.')}
 '''
     return page('/about/', 'Our Story | Idaho Falls Luxury RV Park',
@@ -1733,7 +1767,7 @@ def contact():
       <div>
         <h2>Send a message</h2>
         <form class="booking" style="box-shadow:none;border:1px solid var(--line);padding:1.5rem"
-              action="mailto:{EMAIL}" method="post" enctype="text/plain">
+              data-mailto-form data-to="{EMAIL}">
           <div style="display:grid;gap:1rem">
             <div class="booking-field"><label for="cname">Name</label>
               <input type="text" id="cname" name="name" required autocomplete="name"></div>

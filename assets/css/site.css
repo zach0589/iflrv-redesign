@@ -457,3 +457,37 @@ body.has-hero .site-header.scrolled .brand .brand-light{display:block}
   .nav-panel a:hover{background:rgba(255,255,255,.1);color:#fff}
   .nav-panel a small{color:rgba(255,255,255,.55)}
 }
+
+/* ============ second pass ============ */
+
+/* The utility bar and header move as one block, so a fixed header on hero
+   pages can no longer sit on top of the utility bar. */
+.site-top{position:sticky;top:0;z-index:900}
+body.has-hero .site-top{position:fixed;left:0;right:0;top:0}
+.site-header{position:static}
+body.has-hero .site-header{position:static}
+
+/* Mobile nav hangs off the whole top block rather than a hardcoded offset */
+@media (max-width:1040px){
+  .nav{
+    position:absolute;top:100%;left:0;right:0;inset-inline:0;bottom:auto;
+    max-height:calc(100dvh - 100%);overflow-y:auto;
+  }
+}
+
+/* Collapsed accordion panels are removed from the tab order and the
+   accessibility tree — a 0-height overflow:hidden panel still isn't. */
+.acc-panel{visibility:hidden;transition:height .26s ease,visibility 0s linear .26s}
+.acc-panel.is-open{visibility:visible;transition:height .26s ease,visibility 0s}
+
+/* booking widget now carries a guests field */
+.booking-grid-6{grid-template-columns:1.1fr 1.1fr .85fr .9fr 1.15fr auto}
+@media (max-width:1180px){.booking-grid-6{grid-template-columns:1fr 1fr 1fr}
+  .booking-grid-6 > .btn{grid-column:1/-1}}
+@media (max-width:640px){.booking-grid-6{grid-template-columns:1fr 1fr}}
+
+/* awards strip */
+.awards{display:flex;gap:clamp(1.5rem,4vw,3.5rem);align-items:center;justify-content:center;flex-wrap:wrap}
+.awards img{height:clamp(76px,9vw,104px);width:auto}
+.awards figure{margin:0;text-align:center;display:grid;gap:.6rem;justify-items:center}
+.awards figcaption{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;max-width:20ch}

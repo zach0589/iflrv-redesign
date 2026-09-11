@@ -24,6 +24,7 @@
 <body id="top">
 <a class="skip" href="#main">Skip to main content</a>
 
+<div class="site-top">
 <div class="utility"><div class="wrap-wide">
   <div class="utility-awards">
     <span>&#9733; Idaho&#39;s Best RV Park &mdash; Statewide</span>
@@ -47,6 +48,7 @@
     </button>
   </div>
 </header>
+</div>
 <main id="main">
 <div class="crumbs"><div class="wrap"><a href="/iflrv-redesign/">Home</a><span aria-hidden="true">/</span><span aria-current="page">Contact</span></div></div>
 <section class="section-sm" style="padding-top:clamp(2rem,5vw,3.5rem)">
@@ -87,7 +89,7 @@
       <div>
         <h2>Send a message</h2>
         <form class="booking" style="box-shadow:none;border:1px solid var(--line);padding:1.5rem"
-              action="mailto:admin@idahofallsluxuryrvpark.com" method="post" enctype="text/plain">
+              data-mailto-form data-to="admin@idahofallsluxuryrvpark.com">
           <div style="display:grid;gap:1rem">
             <div class="booking-field"><label for="cname">Name</label>
               <input type="text" id="cname" name="name" required autocomplete="name"></div>

@@ -68,6 +68,22 @@
   });
 
   /* -----------------------------------------------------------
+     Contact form — composes a mailto so the prototype has no backend.
+     On the real site, point this at your form handler or CRM.
+  ----------------------------------------------------------- */
+  document.querySelectorAll('[data-mailto-form]').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      var body = [];
+      fd.forEach(function (v, k) { if (v) body.push(k.toUpperCase() + ': ' + v); });
+      window.location.href = 'mailto:' + form.dataset.to +
+        '?subject=' + encodeURIComponent('Website enquiry — ' + (fd.get('topic') || 'General')) +
+        '&body=' + encodeURIComponent(body.join('\n\n'));
+    });
+  });
+
+  /* -----------------------------------------------------------
      Header: transparent over hero, solid once scrolled
   ----------------------------------------------------------- */
   var header = document.querySelector('.site-header');
@@ -145,6 +161,9 @@
     btn.addEventListener('click', function () {
       var isOpen = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      // .is-open drives visibility, which keeps a collapsed panel's links out
+      // of the tab order and out of the accessibility tree
+      panel.classList.toggle('is-open', !isOpen);
       panel.style.height = isOpen ? '0px' : panel.firstElementChild.offsetHeight + 'px';
     });
   });
