@@ -47,8 +47,29 @@ All 26 images on the live homepage ship `alt=""`, including the logo. Every imag
 real alt text (verified in the build: `assert alt`). Also added: visible focus states,
 `prefers-reduced-motion`, keyboard-operable dropdowns and accordions, and an ARIA-wired
 lightbox, and collapsed accordion panels leave the tab order and the accessibility
-tree entirely (a 0-height `overflow:hidden` panel does not). The autoplaying, control-stripped YouTube hero — a third-party iframe as the LCP
-element on mobile — is replaced with a responsive image.
+tree entirely (a 0-height `overflow:hidden` panel does not).
+
+### The hero video
+The live site keeps its motion by autoplaying a YouTube iframe with the controls
+stripped (`6YqvRm1ACf0`, `autoplay=1&loop=1&mute=1&controls=0`). That makes a
+third-party iframe the LCP element on mobile, pulls the player bundle in before the
+hero can paint, gives nobody a way to stop the motion, and ignores
+`prefers-reduced-motion`.
+
+This keeps the motion and drops all of that:
+
+- The same footage, cut to the strongest 12 seconds and **crossfaded into a
+  seamless 10.8s loop**, self-hosted as a 2.9MB H.264 MP4 — no third party at all.
+  (VP9/WebM came out *larger* at matched quality, so it isn't shipped.)
+- The still behind it is **the video's own first frame** at three widths, so when
+  the loop fades in nothing on screen moves.
+- The video is `preload="none"` and its source is attached by JS only when it's
+  actually wanted. **Phones, `prefers-reduced-motion` and `Save-Data`/2G visitors
+  never fetch the 3MB** — they get a 63–126KB still instead.
+- A real pause control, and the loop stops decoding once it scrolls out of view.
+
+Re-encoding from the YouTube copy is lossy twice over. Hand over the original
+export and the same pipeline yields a visibly better file at the same size.
 
 ### 6. The park map exists and nobody sees it
 `/media/gnabpzdm/park-map-6-10-24-opt.jpg` has been sitting in the media library while
@@ -93,8 +114,9 @@ Every one of these is flagged in the amber boxes in the UI. Nothing here invents
 Checked on every build: one `<h1>` per page, zero empty `alt` attributes, balanced
 tags, no broken `aria-controls`/`label for`/duplicate IDs, no broken internal links,
 and all 61 media URLs returning 200. A browser-driven test suite additionally
-asserts the accordion open/close contract and that the booking form collects every
-field the deep link expects.
+asserts the accordion open/close contract, that the booking form collects every
+field the deep link expects, and that the hero video plays on desktop while never
+attaching its source on a narrow viewport.
 
 ## Build
 
