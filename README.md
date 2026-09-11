@@ -58,14 +58,14 @@ hero can paint, gives nobody a way to stop the motion, and ignores
 
 This keeps the motion and drops all of that:
 
-- The same footage, cut to the strongest 12 seconds and **crossfaded into a
-  seamless 10.8s loop**, self-hosted as a 2.9MB H.264 MP4 — no third party at all.
+- The same footage, cut to the stretch that actually shows the sites and **crossfaded into a
+  seamless 6.8s loop**, self-hosted as a 1.9MB H.264 MP4 — no third party at all.
   (VP9/WebM came out *larger* at matched quality, so it isn't shipped.)
 - The still behind it is **the video's own first frame** at three widths, so when
   the loop fades in nothing on screen moves.
 - The video is `preload="none"` and its source is attached by JS only when it's
   actually wanted. **Phones, `prefers-reduced-motion` and `Save-Data`/2G visitors
-  never fetch the 3MB** — they get a 63–126KB still instead.
+  never fetch the 1.9MB** — they get a 63–126KB still instead.
 - A real pause control, and the loop stops decoding once it scrolls out of view.
 
 Re-encoding from the YouTube copy is lossy twice over. Hand over the original
