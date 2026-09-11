@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zach0589.github.io/iflrv-redesign/sitemap.xml
