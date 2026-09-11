@@ -434,13 +434,11 @@ def home():
 
 <section class="section-sm">
   <div class="wrap">
+    <p class="eyebrow center">Recognized</p>
     <div class="awards">
-      <figure>{img('/media/li4hq32r/img_3424.png', "Idaho's Best of 2025 statewide winner badge", 260)}
-        <figcaption>Idaho&#39;s Best 2025 &mdash; Statewide</figcaption></figure>
-      <figure>{img('/media/ettnarzb/img_3425.png', "Idaho's Best of 2025 Eastern Idaho winner badge", 260)}
-        <figcaption>Idaho&#39;s Best 2025 &mdash; Eastern Idaho</figcaption></figure>
-      <figure>{img('/media/3rcjp3ob/best-of-the-best-2025.png', 'RV Life Best of the Best campground 2025 winner badge', 260)}
-        <figcaption>RV Life Best of the Best 2025</figcaption></figure>
+      <figure>{img('/media/li4hq32r/img_3424.png', "Idaho's Best of 2025 statewide winner badge", 420)}</figure>
+      <figure>{img('/media/ettnarzb/img_3425.png', "Idaho's Best of 2025 Eastern Idaho winner badge", 420)}</figure>
+      <figure class="awards-wide">{img('/media/3rcjp3ob/best-of-the-best-2025.png', 'RV Life Best of the Best campground 2025 winner badge', 420)}</figure>
     </div>
   </div>
 </section>
