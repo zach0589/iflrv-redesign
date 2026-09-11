@@ -313,14 +313,25 @@ def cta_band(img_src, alt, heading, text, primary=('Check availability', '/rates
 </section>'''
 
 def crumbs(items):
-    parts = []
+    """Visual breadcrumbs plus the matching BreadcrumbList, emitted together so
+    the two can never drift apart."""
+    import json
+    parts, el = [], []
     for i, (label, href) in enumerate(items):
         if href and i < len(items) - 1:
             parts.append(f'<a href="{u(href)}">{label}</a>')
         else:
             parts.append(f'<span aria-current="page">{label}</span>' if i else label)
+        node = {'@type': 'ListItem', 'position': i + 1,
+                'name': html.unescape(re.sub('<[^>]+>', '', label))}
+        if href:
+            node['item'] = SITE + href
+        el.append(node)
+    ld = json.dumps({'@context': 'https://schema.org', '@type': 'BreadcrumbList',
+                     'itemListElement': el})
     return ('<div class="crumbs"><div class="wrap">'
-            + '<span aria-hidden="true">/</span>'.join(parts) + '</div></div>')
+            + '<span aria-hidden="true">/</span>'.join(parts) + '</div></div>'
+            + f'<script type="application/ld+json">{ld}</script>')
 
 def page_hero(img_src, alt, eyebrow, h1, sub):
     return f'''
@@ -559,9 +570,9 @@ def home():
   'Your site is waiting',
   'Check live availability, pick your pad, and book in about ninety seconds.')}
 '''
-    return page('/', 'Idaho Falls Luxury RV Park | Oversized Full-Hookup RV Sites on the Snake River',
-                "Fifty-nine oversized, fully paved 50-amp full-hookup RV sites on the Snake River in Idaho Falls "
-                "— 2 miles from downtown and 2 hours from Yellowstone's west entrance. Check availability.",
+    return page('/', 'Idaho Falls RV Park | Full-Hookup Sites on the Snake River',
+                "59 oversized paved 50-amp full-hookup RV sites on the Snake River. Two miles from downtown "
+                "Idaho Falls, two hours from Yellowstone. Check dates and rates.",
                 body, active='/', has_hero=True, jsonld=ld)
 
 # ================================================================ STAY HUB
@@ -654,8 +665,8 @@ def stay():
   'Ready when you are', 'Live availability, real-time pricing, and a booking that takes about ninety seconds.')}
 '''
     return page('/stay/', 'Compare All 59 RV Sites | Idaho Falls Luxury RV Park',
-                'Compare every site type at Idaho Falls Luxury RV Park side by side — pull-through, '
-                'back-in, SprinterLand casita and the Ultimate Pull-In. Pad sizes, hookups and what comes with each.',
+                'Compare all 59 sites side by side — pull-through, back-in, SprinterLand casita and the '
+                'Ultimate Pull-In. Pad sizes, hookups and what each one includes.',
                 body, active='/stay', has_hero=True,
                 og_img='/media/2g2dxrsl/dronesummer-updated.jpg')
 
@@ -743,8 +754,8 @@ def rv_sites():
   'Book a pull-through', 'Check live availability for your dates and rig length.')}
 '''
     return page('/stay/rv-sites/', 'Pull-Through &amp; Back-In RV Sites | Idaho Falls Luxury RV Park',
-                '58 paved, level 36ft x 80ft full-hookup RV sites with 50-amp service, water, sewer and '
-                'site-specific Wi-Fi. Pull-through and back-in sites for oversized rigs in Idaho Falls, Idaho.',
+                '58 paved, level 36x80ft full-hookup sites with 50-amp service, water, sewer and private '
+                'Wi-Fi. Pull-through and back-in, built for oversized rigs.',
                 body, active='/stay', has_hero=True,
                 og_img='/media/f3hlpx5h/idaho-falls-luxury-rv-park-20230519-038-scaled-1.jpg')
 
@@ -832,9 +843,8 @@ def casitas():
   'Ten casitas. That&#39;s it.', 'Check which dates still have one open.')}
 '''
     return page('/stay/casitas/', 'SprinterLand Casita Sites | Idaho Falls Luxury RV Park',
-                'Ten premium RV sites with a private casita shelter — electric ceiling heaters, masonry '
-                'charcoal BBQ, Adirondack chairs, party lights and a second patio. Built for adventure vans '
-                'and anyone who lives outside.',
+                'Ten premium sites with a private casita shelter — ceiling heaters, masonry charcoal BBQ, '
+                'Adirondack chairs and a second patio. Built for adventure vans.',
                 body, active='/stay', has_hero=True, og_img='/media/ldiedk2y/sprinterland-opt.jpg')
 
 # ================================================================ EXTENDED
@@ -911,8 +921,8 @@ def extended():
   primary=('Call the office', '/contact/'))}
 '''
     return page('/stay/extended/', 'Extended &amp; Seasonal RV Stays | Idaho Falls Luxury RV Park',
-                'Discounted monthly rates on a limited number of sites, plus seasonal spots running Memorial '
-                'Day through Labor Day at Idaho Falls Luxury RV Park. Rules and requirements up front.',
+                'Discounted monthly rates on a limited number of sites, plus seasonal spots from Memorial '
+                'Day to Labor Day. Rules and requirements stated up front.',
                 body, active='/stay', has_hero=True, og_img='/media/ujwlgfbg/dronesummer.jpg')
 
 # ================================================================ RATES
@@ -1016,8 +1026,8 @@ def rates():
   'Search your dates', 'Live availability across all 59 sites.')}
 '''
     return page('/rates/', 'Rates &amp; Availability | Idaho Falls Luxury RV Park',
-                'Nightly rates by site type and season, what every rate includes, the full fee schedule and '
-                'the cancellation policy — then check live availability for your dates.',
+                'Nightly rates by site type and season, what every rate includes, the fee schedule and the '
+                'cancellation policy. Check live availability for your dates.',
                 body, active='/rates', has_hero=True, og_img='/media/cvcdxegg/iflrv-11.jpg')
 
 # ================================================================ AMENITIES
@@ -1102,8 +1112,8 @@ def amenities():
   primary=('Virtual tour &amp; gallery', '/park/gallery/'))}
 '''
     return page('/park/amenities/', 'Amenities | Idaho Falls Luxury RV Park',
-                'Full hookups, site-specific Wi-Fi, five private tiled bathrooms with heated floors, two '
-                'pickleball courts, a fenced dog park, 24-hour laundry, camp store and direct Greenbelt access.',
+                'Full hookups, private Wi-Fi per site, five tiled bathrooms with heated floors, two '
+                'pickleball courts, a fenced dog park, 24-hour laundry and Greenbelt access.',
                 body, active='/park', has_hero=True, og_img='/media/nbkpdav5/drone2.jpg')
 
 # ================================================================ PARK MAP
@@ -1172,8 +1182,8 @@ def park_map():
   'Found your spot?', 'Check which sites are open on your dates.')}
 '''
     return page('/park/map/', 'Park Map | Idaho Falls Luxury RV Park',
-                'An interactive, zoomable site map of Idaho Falls Luxury RV Park — see where pull-through, '
-                'back-in and SprinterLand casita sites sit relative to the lodge, river and amenities.',
+                'A zoomable site map — see where the pull-through, back-in and SprinterLand casita sites '
+                'sit relative to the lodge, the river and the amenities.',
                 body, active='/park', og_img='/media/gnabpzdm/park-map-6-10-24-opt.jpg')
 
 # ================================================================ GALLERY
@@ -1419,8 +1429,8 @@ def policies():
   primary=('Contact us', '/contact/'))}
 '''
     return page('/park/policies/', 'Park Policies | Idaho Falls Luxury RV Park',
-                'Cancellation windows, pet rules, check-in and check-out, parking, quiet hours and everything '
-                'else — grouped by when it matters, from before you book to while you are here.',
+                'Cancellation windows, pet rules, check-in and check-out, parking and quiet hours — grouped '
+                'by when they matter, from before you book to while you are here.',
                 body, active='/park', og_img='/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg')
 
 # ================================================================ EXPLORE
@@ -1556,8 +1566,8 @@ def explore():
   'Make this your basecamp', 'One site, a dozen day trips, and a hot shower waiting at the end of each one.')}
 '''
     return page('/explore/', 'Things to Do &amp; Drive Times | Idaho Falls Luxury RV Park',
-                "Drive times from the park to Yellowstone's west entrance, Grand Teton, Jackson Hole and "
-                "Craters of the Moon — plus the Greenbelt, downtown Idaho Falls and the 4th of July.",
+                "Drive times from the park gate to Yellowstone's west entrance, Grand Teton, Jackson Hole "
+                "and Craters of the Moon, plus the Greenbelt and downtown Idaho Falls.",
                 body, active='/explore', has_hero=True, og_img='/media/f3pk4rhy/dronesunrise.jpg')
 
 # ================================================================ FAQ
@@ -1770,8 +1780,8 @@ def about():
   'Come be part of it', 'Check availability for your dates.')}
 '''
     return page('/about/', 'Our Story | Idaho Falls Luxury RV Park',
-                'Two families, a Portland homebuilder and the closed Sky-Vu Drive-In Theater — how Idaho '
-                "Falls Luxury RV Park came to be, and what opened on the site in May 2023.",
+                'Two families, a Portland homebuilder and the closed Sky-Vu Drive-In Theater — how the park '
+                "came to be, and what opened on the old theater site in May 2023.",
                 body, active='/about', has_hero=True, og_img='/media/12cbkpnp/sunriselandscape.jpg')
 
 # ================================================================ CONTACT
@@ -1866,8 +1876,8 @@ def contact():
 </section>
 '''
     return page('/contact/', 'Contact &amp; Directions | Idaho Falls Luxury RV Park',
-                'Phone, email, office hours and directions to Idaho Falls Luxury RV Park at 3000 S '
-                'Yellowstone Hwy — plus a message form for seasonal stays, group bookings and rig questions.',
+                'Phone, email, office hours and directions to 3000 S Yellowstone Hwy, Idaho Falls — plus a '
+                'form for seasonal stays, group bookings and rig questions.',
                 body, active='/contact', og_img='/media/cy0lrm2y/droneparknexttoriver.jpg')
 
 # ================================================================ 404
@@ -1887,7 +1897,8 @@ def notfound():
   </div>
 </section>'''
     return page('/404.html', 'Page Not Found | Idaho Falls Luxury RV Park',
-                'That page could not be found.', body)
+                'That page could not be found. Jump to availability, the site comparison or the FAQ for '
+                'Idaho Falls Luxury RV Park.', body)
 
 # ================================================================ BUILD
 PAGES = [
