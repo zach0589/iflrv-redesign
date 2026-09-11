@@ -28,6 +28,19 @@ ICON_ASSETS = ('water-heater', 'bus-stop', 'lounge.png', 'camper-van', 'barbeque
                'statue-of-liberty', 'telephone', 'mail-2', 'reservation.png',
                'happy-shopper', 'rv-share', 'sprinterland-02')
 
+def asset(path):
+    """Internal asset URL with a content hash, so a redeploy can't be served
+    from a stale browser/CDN cache (which is exactly what happened when the
+    awards CSS changed but browsers kept the old file)."""
+    import hashlib
+    local = os.path.join(os.path.dirname(os.path.abspath(__file__)), path.lstrip('/'))
+    try:
+        h = hashlib.md5(open(local, 'rb').read()).hexdigest()[:8]
+    except OSError:
+        return u(path)
+    return f'{u(path)}?v={h}'
+
+
 def img(src, alt, w=1200, cls='', loading='lazy', ratio=None):
     """Responsive image off their Umbraco media pipeline (supports width + webp)."""
     sep = '&' if '?' in src else '?'
@@ -211,7 +224,7 @@ def page(slug, title, desc, body, active=None, has_hero=False, jsonld='', og_img
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="{MEDIA}">
 <link href="https://fonts.googleapis.com/css2?family=Mohave:wght@400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{u('/assets/css/site.css')}">
+<link rel="stylesheet" href="{asset('/assets/css/site.css')}">
 {ld}
 </head>
 <body{cls} id="top">
@@ -221,7 +234,7 @@ def page(slug, title, desc, body, active=None, has_hero=False, jsonld='', og_img
 {body}
 </main>
 {footer()}
-<script src="{u('/assets/js/site.js')}" defer></script>
+<script src="{asset('/assets/js/site.js')}" defer></script>
 </body>
 </html>'''
 
@@ -412,12 +425,12 @@ def home():
          nothing on screen moves. It is also the only thing phones, reduced-motion
          and Save-Data visitors ever download. -->
     <img class="hero-still"
-         src="{u('/assets/video/hero-1400.jpg')}"
-         srcset="{u('/assets/video/hero-900.jpg')} 900w, {u('/assets/video/hero-1400.jpg')} 1400w, {u('/assets/video/hero-1920.jpg')} 1920w"
-         sizes="100vw" width="1920" height="1080" fetchpriority="high" decoding="async"
-         alt="Aerial view over the paved sites at Idaho Falls Luxury RV Park">
+         src="{asset('/assets/video/hero-1400.jpg')}"
+         srcset="{asset('/assets/video/hero-900.jpg')} 900w, {asset('/assets/video/hero-1400.jpg')} 1400w, {asset('/assets/video/hero-1600.jpg')} 1600w"
+         sizes="100vw" width="1600" height="900" fetchpriority="high" decoding="async"
+         alt="The Snake River and the Greenbelt trail running past the RV park">
     <video class="hero-video" muted loop playsinline preload="none"
-           data-src="{u('/assets/video/hero.mp4')}" aria-hidden="true" tabindex="-1"></video>
+           data-src="{asset('/assets/video/hero.mp4')}" aria-hidden="true" tabindex="-1"></video>
     <button class="hero-motion" type="button" data-motion hidden>
       <span class="hero-motion-ico" aria-hidden="true"></span><span data-motion-label>Pause</span>
     </button>

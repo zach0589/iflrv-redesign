@@ -58,14 +58,15 @@ hero can paint, gives nobody a way to stop the motion, and ignores
 
 This keeps the motion and drops all of that:
 
-- The same footage, cut to the stretch that actually shows the sites and **crossfaded into a
-  seamless 6.8s loop**, self-hosted as a 1.9MB H.264 MP4 — no third party at all.
-  (VP9/WebM came out *larger* at matched quality, so it isn't shipped.)
+- **The whole 36-second flight** — river, site rows, pickleball, playground, lodge and back
+  to the river — crossfaded into a loop, self-hosted as a 4.4MB H.264 MP4 at 1600×900,
+  no third party at all. (VP9/WebM came out *larger* at matched quality, so it isn't
+  shipped.) The clip's own ends don't match (SSIM 0.46), hence the 1.2s crossfade.
 - The still behind it is **the video's own first frame** at three widths, so when
   the loop fades in nothing on screen moves.
 - The video is `preload="none"` and its source is attached by JS only when it's
   actually wanted. **Phones, `prefers-reduced-motion` and `Save-Data`/2G visitors
-  never fetch the 1.9MB** — they get a 63–126KB still instead.
+  never fetch the 4.4MB** — they get a 30–65KB still instead.
 - A real pause control, and the loop stops decoding once it scrolls out of view.
 
 Re-encoding from the YouTube copy is lossy twice over. Hand over the original
@@ -117,6 +118,13 @@ and all 61 media URLs returning 200. A browser-driven test suite additionally
 asserts the accordion open/close contract, that the booking form collects every
 field the deep link expects, and that the hero video plays on desktop while never
 attaching its source on a narrow viewport.
+
+## Caching
+
+CSS, JS, the hero video and its stills are served with a content-hash query
+(`site.css?v=c54599b4`). Without it a redeploy can be served from a stale browser
+cache — which happened once here, with an old stylesheet still painting black tiles
+behind the award badges after the rule had been deleted.
 
 ## Build
 
