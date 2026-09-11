@@ -491,3 +491,12 @@ body.has-hero .site-header{position:static}
 .awards img{height:clamp(76px,9vw,104px);width:auto}
 .awards figure{margin:0;text-align:center;display:grid;gap:.6rem;justify-items:center}
 .awards figcaption{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;max-width:20ch}
+
+/* odd stat shouldn't leave a dead cell on a two-column phone layout */
+@media (max-width:620px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stats > .stat:last-child:nth-child(odd){grid-column:1/-1}
+}
+/* award badges ship on black backgrounds — seat them on a dark tile so that
+   reads as deliberate rather than as three black rectangles on white */
+.awards figure > img{background:#0b0b0b;border-radius:10px;padding:10px}

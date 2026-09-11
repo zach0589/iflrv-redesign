@@ -34,29 +34,38 @@ Every page's DOM opened with four orphaned `<h3>`s from the nav panel — so **n
 `<h1>`**, and screen reader users heard the same four attraction headings before every page's
 actual content. Nav is now a real `<nav>` with list markup; every page has exactly one H1.
 
-### 4. Accessibility
+### 4. Every photo actually shows what the caption says
+The first build assigned images by filename, and the filenames lie. A rendered
+contact sheet of the whole media library caught roughly **30 of 61 wrong**:
+`lounge.png` is line art rather than the lodge, the pull-through card was showing
+pickleball, the laundry card was showing the lodge exterior, the bathroom card was
+showing a bike rack, and the Yellowstone card was showing fireworks. Every image
+is now checked by eye against its alt text.
+
+### 5. Accessibility
 All 26 images on the live homepage ship `alt=""`, including the logo. Every image here has
 real alt text (verified in the build: `assert alt`). Also added: visible focus states,
 `prefers-reduced-motion`, keyboard-operable dropdowns and accordions, and an ARIA-wired
-lightbox. The autoplaying, control-stripped YouTube hero — a third-party iframe as the LCP
+lightbox, and collapsed accordion panels leave the tab order and the accessibility
+tree entirely (a 0-height `overflow:hidden` panel does not). The autoplaying, control-stripped YouTube hero — a third-party iframe as the LCP
 element on mobile — is replaced with a responsive image.
 
-### 5. The park map exists and nobody sees it
+### 6. The park map exists and nobody sees it
 `/media/gnabpzdm/park-map-6-10-24-opt.jpg` has been sitting in the media library while
 *Virtual Tour & Site Map* ships a fixed `height="800"` iframe and no map at all. It's now a
 pan-and-zoom viewer with a site-type legend. The 360° tour holds a 16:10 ratio at every
 width and degrades to two working links.
 
-### 6. Policies are readable at the moment they matter
+### 7. Policies are readable at the moment they matter
 ~20 sections of flat prose became accordions grouped by decision stage — *Before you book*
 (cancellation, pets, rig age), *Arriving & leaving*, *While you're here*.
 
-### 7. The FAQ was the best content on the site and nobody landed on it
+### 8. The FAQ was the best content on the site and nobody landed on it
 Its trip-planning answers (Yellowstone West Entrance, Tetons, Jackson, SLC) are promoted to
 the homepage and to a new `/explore/` page — replacing *Things to Do*, which is currently a
 nav parent pointing at a page with no content on it.
 
-### 8. SEO and metadata
+### 9. SEO and metadata
 The live homepage has an empty `<meta name="description">` and empty `og:description`, and
 `sitemap.xml` returns 404. Every page here has a real description and OG tags; the build
 emits `sitemap.xml` and `robots.txt`, plus `Campground` and `FAQPage` JSON-LD.
@@ -76,7 +85,16 @@ Every one of these is flagged in the amber boxes in the UI. Nothing here invents
 | **Penthouse Apartment** — has a cancellation policy but no page | needs a page |
 | **Restaurant recommendations** — the live "Bars & Restaurants" page is empty | `/explore/#dining` |
 | **4th of July details** — the live page is empty | `/explore/#july4` |
-| **Contact form backend** — currently `mailto:`; the live site has no form at all | `contact()` |
+| **Contact form backend** — currently composes a `mailto:`; the live site has no form at all | `contact()` |
+| **Yellowstone / Teton photography** — the library has none, so `/explore/` reuses park shots | `/explore/` |
+
+## Verified, not assumed
+
+Checked on every build: one `<h1>` per page, zero empty `alt` attributes, balanced
+tags, no broken `aria-controls`/`label for`/duplicate IDs, no broken internal links,
+and all 61 media URLs returning 200. A browser-driven test suite additionally
+asserts the accordion open/close contract and that the booking form collects every
+field the deep link expects.
 
 ## Build
 
