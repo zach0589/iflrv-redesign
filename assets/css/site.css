@@ -500,3 +500,23 @@ body.has-hero .site-header{position:static}
 /* award badges ship on black backgrounds — seat them on a dark tile so that
    reads as deliberate rather than as three black rectangles on white */
 .awards figure > img{background:#0b0b0b;border-radius:10px;padding:10px}
+
+/* ============ hero video ============ */
+.hero-still,.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero-video{opacity:0;transition:opacity .7s ease}
+.hero-video.is-playing{opacity:1}
+.hero-motion{
+  position:absolute;right:clamp(1rem,3vw,2rem);bottom:clamp(1rem,3vw,2rem);z-index:3;
+  display:inline-flex;align-items:center;gap:.5em;cursor:pointer;
+  font-family:var(--b);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#fff;background:rgba(15,56,48,.55);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:.6em 1.1em;
+  transition:background .18s,color .18s;
+}
+.hero-motion:hover{background:#fff;color:var(--ink);border-color:#fff}
+.hero-motion-ico{width:9px;height:11px;background:currentColor;
+  -webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat;
+  --ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Crect width='2.5' height='10'/%3E%3Crect x='5.5' width='2.5' height='10'/%3E%3C/svg%3E")}
+.hero-motion.is-paused .hero-motion-ico{
+  --ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Cpath d='M0 0l8 5-8 5z'/%3E%3C/svg%3E")}
+@media (prefers-reduced-motion:reduce){.hero-video{display:none}}

@@ -61,7 +61,21 @@
 <main id="main">
 
 <section class="hero">
-  <div class="hero-media"><img src="https://idahofallsluxuryrvpark.com/media/cy0lrm2y/droneparknexttoriver.jpg?width=2000&format=webp" srcset="https://idahofallsluxuryrvpark.com/media/cy0lrm2y/droneparknexttoriver.jpg?width=2000&format=webp 1x, https://idahofallsluxuryrvpark.com/media/cy0lrm2y/droneparknexttoriver.jpg?width=4000&format=webp 2x" alt="Aerial view of Idaho Falls Luxury RV Park laid out alongside the Snake River" loading="eager" decoding="async"></div>
+  <div class="hero-media">
+    <!-- The still is the video's own first frame, so when the loop fades in
+         nothing on screen moves. It is also the only thing phones, reduced-motion
+         and Save-Data visitors ever download. -->
+    <img class="hero-still"
+         src="/iflrv-redesign/assets/video/hero-1400.jpg"
+         srcset="/iflrv-redesign/assets/video/hero-900.jpg 900w, /iflrv-redesign/assets/video/hero-1400.jpg 1400w, /iflrv-redesign/assets/video/hero-1920.jpg 1920w"
+         sizes="100vw" width="1920" height="1080" fetchpriority="high" decoding="async"
+         alt="Aerial view over the paved sites at Idaho Falls Luxury RV Park">
+    <video class="hero-video" muted loop playsinline preload="none"
+           data-src="/iflrv-redesign/assets/video/hero.mp4" aria-hidden="true" tabindex="-1"></video>
+    <button class="hero-motion" type="button" data-motion hidden>
+      <span class="hero-motion-ico" aria-hidden="true"></span><span data-motion-label>Pause</span>
+    </button>
+  </div>
   <div class="hero-inner"><div class="wrap">
     <span class="eyebrow">Idaho Falls, Idaho &middot; On the Snake River</span>
     <h1>The largest paved sites in East Idaho</h1>

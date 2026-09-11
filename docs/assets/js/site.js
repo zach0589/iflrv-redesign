@@ -68,6 +68,66 @@
   });
 
   /* -----------------------------------------------------------
+     Hero video.
+
+     The live site autoplays a YouTube iframe with controls stripped: it
+     becomes the LCP element on mobile, pulls in the player bundle before the
+     hero can finish painting, offers no way to stop the motion, and ignores
+     prefers-reduced-motion.
+
+     This keeps the motion and drops all of that. The still paints first and is
+     the video's own opening frame, so the fade-in is invisible. The 3MB loop is
+     only ever fetched when it is actually wanted -- never on a phone, never
+     under reduced-motion, never on a metered connection -- and there is a real
+     pause control.
+  ----------------------------------------------------------- */
+  (function () {
+    var video = document.querySelector('.hero-video');
+    if (!video) return;
+
+    var toggle = document.querySelector('[data-motion]');
+    var label = document.querySelector('[data-motion-label]');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var wide = window.matchMedia('(min-width: 861px)');
+    var conn = navigator.connection || {};
+    var thrifty = conn.saveData === true || /^(slow-)?2g$/.test(conn.effectiveType || '');
+
+    if (!wide.matches || reduced.matches || thrifty) return;  // still image only
+
+    video.src = video.dataset.src;
+    video.load();
+
+    video.addEventListener('canplay', function () {
+      var p = video.play();
+      if (p && p.catch) p.catch(function () { /* autoplay refused: keep the still */ });
+    }, { once: true });
+
+    video.addEventListener('playing', function () {
+      video.classList.add('is-playing');
+      if (toggle) toggle.hidden = false;
+    }, { once: true });
+
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        var paused = video.paused;
+        if (paused) { video.play(); } else { video.pause(); }
+        toggle.classList.toggle('is-paused', !paused);
+        if (label) label.textContent = paused ? 'Pause' : 'Play';
+        toggle.setAttribute('aria-label', (paused ? 'Pause' : 'Play') + ' the background video');
+      });
+    }
+
+    // stop decoding while the hero is off screen
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (e) {
+        if (!toggle || !toggle.classList.contains('is-paused')) {
+          e[0].isIntersecting ? video.play().catch(function () {}) : video.pause();
+        }
+      }, { threshold: 0.05 }).observe(video);
+    }
+  })();
+
+  /* -----------------------------------------------------------
      Contact form — composes a mailto so the prototype has no backend.
      On the real site, point this at your form handler or CRM.
   ----------------------------------------------------------- */
