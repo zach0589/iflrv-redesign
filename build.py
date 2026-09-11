@@ -47,7 +47,8 @@ NAV = [
     ('The Park', '/park/amenities/', [
         ('/park/amenities/', 'Amenities',   'Lodge, pickleball, dog park, laundry'),
         ('/park/map/',       'Park Map',    'See exactly where your site sits'),
-        ('/park/gallery/',   'Gallery',     'Photos and the 360&deg; virtual tour'),
+        ('/park/gallery/#tour', '360&deg; Virtual Tour', 'Walk the roads before you arrive'),
+        ('/park/gallery/',   'Photo Gallery', 'Sites, lodge, casitas and the river'),
         ('/park/policies/',  'Policies',    'Cancellation, pets, rig age, check-in'),
     ]),
     ('Explore', '/explore/', [
@@ -140,7 +141,8 @@ def footer():
         <ul>
           <li><a href="{u('/park/amenities/')}">Amenities</a></li>
           <li><a href="{u('/park/map/')}">Park map</a></li>
-          <li><a href="{u('/park/gallery/')}">Gallery &amp; tour</a></li>
+          <li><a href="{u('/park/gallery/#tour')}">360&deg; virtual tour</a></li>
+          <li><a href="{u('/park/gallery/')}">Photo gallery</a></li>
           <li><a href="{u('/park/policies/')}">Policies</a></li>
           <li><a href="{u('/faq/')}">FAQ</a></li>
         </ul>
@@ -452,7 +454,10 @@ def home():
         outdoor room comes with it &mdash; and whether you ever have to back up.</p>
     </div>
     <div class="grid g4">{cards}</div>
-    <p class="center mt3"><a class="btn btn-dark btn-lg" href="{u('/stay/')}">Compare all four side by side</a></p>
+    <p class="center mt3">
+      <a class="btn btn-dark btn-lg" href="{u('/stay/')}">Compare all four side by side</a>
+      <a class="btn btn-outline btn-lg" href="{u('/park/gallery/#tour')}" style="margin-left:.6rem">Take the 360&deg; tour</a>
+    </p>
   </div>
 </section>
 
@@ -499,7 +504,7 @@ def home():
           <li>The region&#39;s largest outdoor community fireplace</li>
           <li>Two regulation pickleball courts and a fenced dog park</li>
           <li>Site-specific Wi-Fi &mdash; your own hotspot, not a shared signal</li>
-          <li>Camp store, two 24-hour laundry rooms, complimentary beach cruisers</li>
+          <li>Camp store, two 24-hour laundry rooms, beach cruisers for the Greenbelt</li>
           <li>Gated property with guest-only access codes</li>
         </ul>
         <p class="mt2"><a class="btn btn-outline" href="{u('/park/amenities/')}">All amenities</a></p>
@@ -960,7 +965,6 @@ def rates():
           <li>Five private bathrooms, tiled showers, heated floors</li>
           <li>Two 24-hour laundry rooms (credit-card machines)</li>
           <li>Two pickleball courts and the fenced dog park</li>
-          <li>Complimentary beach cruiser bikes</li>
           <li>Direct access to 14 miles of Greenbelt trail</li>
           <li>Gated entry with a guest-only access code</li>
         </ul>
@@ -1026,8 +1030,9 @@ AMENITIES = [
     ('Playground &amp; lawn', '/media/sallnm0f/dsc00831.jpg', 'Children playing on the playground', 'Swings, a climbing structure and room to run',
      'Swings, a small climbing structure and a large open lawn for frisbee or catch, with safe paved '
      'roads throughout the park.'),
-    ('Complimentary bikes', '/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg', 'A rack of yellow beach cruiser bikes available to guests', 'Beach cruisers, free for guests',
-     'Beach cruiser bikes are available at no charge for riding the Greenbelt or heading into town.'),
+    ('Beach cruisers', '/media/rfjan1ng/idaho-falls-luxury-rv-park-20230519-016-scaled.jpg', 'A rack of yellow beach cruiser bikes available to guests', 'Ride the Greenbelt straight from the park',
+     'A rack of beach cruisers sits by the lodge for riding the Greenbelt or heading into town. '
+     'Ask at the office for current availability and terms.'),
     ('Gated &amp; secure', '/media/cqhp0zsx/img_6459-1.jpg', 'The gated entrance to the park', 'Access codes issued to registered guests only',
      'The property is gated, and entry codes go to registered guests only. Quiet hours are observed.'),
 ]
@@ -1048,6 +1053,11 @@ def amenities():
 <section class="section">
   <div class="wrap-wide">
     <div class="grid g3">{cards}</div>
+    {PROTO('<b>The bikes are not complimentary</b> &mdash; but your live FAQ says they are '
+           '(&ldquo;Do you provide bikes for guests? Yes. Complimentary beach cruiser bikes&hellip;&rdquo;), '
+           'and that wording is what this rebuild originally inherited. Worth correcting on the live site '
+           'too. Tell me the actual terms &mdash; rental fee, deposit, guests-only &mdash; and I will state '
+           'them here rather than leaving it vague.')}
   </div>
 </section>
 
@@ -1192,6 +1202,9 @@ def gallery():
 
 <section class="section-sm" id="tour">
   <div class="wrap-wide">
+    <h2>360&deg; virtual tour</h2>
+    <p class="lede" style="max-width:60ch;margin-bottom:1.5rem">Move through the park site by site,
+      at your own pace, before you ever pull in the gate.</p>
     <div style="position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--sand-2)">
       <div style="position:relative;padding-top:62%">
         <iframe src="https://360.campgroundviews.com/h/IdahoFallsLuxuryRVResort"
@@ -1210,7 +1223,9 @@ def gallery():
 
 <section class="section">
   <div class="wrap-wide">
-    <h2 class="sr">Photo gallery</h2>
+    <h2>Photo gallery</h2>
+    <p class="lede" style="max-width:60ch;margin-bottom:2rem">The sites, the lodge, the casitas
+      and the river, in daylight and at the hour that sells the place.</p>
     <div class="gallery">{figs}</div>
   </div>
 </section>
@@ -1590,7 +1605,8 @@ FAQ = [
    'Yes. Two regulation courts available to guests first-come, first-served. Paddles and balls can be '
    'rented at the lodge.'),
   ('q23', 'Do you provide bikes?',
-   'Yes. Complimentary beach cruiser bikes are available for the Greenbelt or for riding into the city.'),
+   'Yes. Beach cruiser bikes are available for the Greenbelt or for riding into the city. '
+   'Ask at the office for current availability and terms.'),
   ('q24', 'Do you offer RV or boat storage?',
    'Yes. Eagle Rock Storage offers secure RV, boat, vehicle and general storage right next door to the '
    'park &mdash; fully fenced with gated access. Learn more at '
@@ -1643,9 +1659,11 @@ def faq():
         for i, q, a in items:
             a = a.replace('{PETS}', u('/park/policies/#pets')).replace('{EXT}', u('/stay/extended/'))
             fixed.append((i, q, f'<p>{a}</p>'))
-            qa.append({'@type': 'Question', 'name': re.sub('<[^>]+>', '', q).replace('&amp;', '&'),
-                       'acceptedAnswer': {'@type': 'Answer',
-                                          'text': re.sub('<[^>]+>', '', a).replace('&amp;', '&')}})
+            # strip tags AND decode entities — raw &mdash;/&#39; in JSON-LD is
+            # what search engines would read back out verbatim
+            clean = lambda t: html.unescape(re.sub('<[^>]+>', '', t)).strip()
+            qa.append({'@type': 'Question', 'name': clean(q),
+                       'acceptedAnswer': {'@type': 'Answer', 'text': clean(a)}})
         groups += f'<div class="acc-group">{acc(fixed, group=title)}</div>'
 
     ld = json.dumps({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': qa})
