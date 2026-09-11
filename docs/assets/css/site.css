@@ -32,6 +32,9 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
+/* A class that sets `display` outranks the bare [hidden] attribute, which left
+   the gallery lightbox permanently covering the page. */
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:calc(var(--hdr) + 38px + 20px)}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}

@@ -23,6 +23,11 @@ def u(path):
     """Internal URL, prefixed for whatever root the site is served from."""
     return (BASE + path) if path.startswith('/') else path
 
+ICON_ASSETS = ('water-heater', 'bus-stop', 'lounge.png', 'camper-van', 'barbeque',
+               'light-bulb', 'mountain', 'eating.png', 'road.png', 'cityscape',
+               'statue-of-liberty', 'telephone', 'mail-2', 'reservation.png',
+               'happy-shopper', 'rv-share', 'sprinterland-02')
+
 def img(src, alt, w=1200, cls='', loading='lazy', ratio=None):
     """Responsive image off their Umbraco media pipeline (supports width + webp)."""
     sep = '&' if '?' in src else '?'
@@ -32,6 +37,10 @@ def img(src, alt, w=1200, cls='', loading='lazy', ratio=None):
     r = f' style="aspect-ratio:{ratio}"' if ratio else ''
     # NOTE: alt text is mandatory here — every image on the live site ships alt=""
     assert alt, f'missing alt text for {src}'
+    # These are line-art icons and wordmarks in the media library, not photographs.
+    # Using one as a photo is the single most repeated mistake in this rebuild.
+    assert not any(k in src for k in ICON_ASSETS), f'{src} is an icon/logo, not a photograph'
+    assert '&#' not in alt and '&mdash;' not in alt, f'alt text must be plain: {alt!r}'
     return (f'<img{c}{r} src="{one}" srcset="{one} 1x, {two} 2x" '
             f'alt="{html.escape(alt)}" loading="{loading}" decoding="async">')
 
@@ -730,13 +739,13 @@ def rv_sites():
 def casitas():
     feats = [
         ('Shelter', 'A cozy 3-sided outdoor shelter with 5-foot privacy walls, to keep the weather off.',
-         '/media/irjnazpz/fallcasita57aiedit.png', 'Inside a casita shelter, with privacy walls and Adirondack chairs'),
+         '/media/2eafmd2d/casita-back-in-2.jpg', 'Inside a casita shelter, with privacy walls and Adirondack chairs'),
         ('Heating', 'Built-in electric ceiling heaters take the chill off mornings and evenings.',
-         '/media/wigeroai/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-011.jpg', 'A casita shelter and fire pit in autumn'),
+         '/media/irjnazpz/fallcasita57aiedit.png', 'A casita shelter and fire pit in autumn'),
         ('Seating', 'Two Adirondack chairs for stretching your legs out and doing nothing in particular.',
-         '/media/irjnazpz/fallcasita57aiedit.png', 'A camper van set up beside its casita, awning out'),
+         '/media/dkxpsbza/casita-back-in.jpg', 'Two Adirondack chairs under a casita shelter'),
         ('Grilling', 'A masonry charcoal barbecue built into the shelter. Charcoal is in the camp store.',
-         '/media/tsckx5wy/fallcasita57charcuterie.png', 'A charcuterie board laid out on the casita table'),
+         '/media/tsckx5wy/fallcasita57charcuterie.png', 'A charcuterie board laid out at a casita'),
     ]
     cards = ''.join(f'''
 <article class="card">
@@ -805,8 +814,8 @@ def casitas():
   </div>
 </section>
 
-{cta_band('/media/dikh3to4/sprinterland-02.jpg',
-  'An open-air shelter and fire pit on a grassy site',
+{cta_band('/media/pzioqoyq/iflrv-04.jpg',
+  'The SprinterLand sign hanging under a casita shelter',
   'Ten casitas. That&#39;s it.', 'Check which dates still have one open.')}
 '''
     return page('/stay/casitas/', 'SprinterLand Casita Sites | Idaho Falls Luxury RV Park',
@@ -1000,7 +1009,7 @@ def rates():
 
 # ================================================================ AMENITIES
 AMENITIES = [
-    ('Full hookups', '/media/chubfg05/water-heater.png', 'Full-hookup sites laid out across the paved park', 'Water, sewer and 50/30-amp electric at every site',
+    ('Full hookups', '/media/kwcbbwkw/3-1-1.png', 'A travel trailer set up on a full-hookup site with its awning out', 'Water, sewer and 50/30-amp electric at every site',
      'Every one of the 59 sites has water, sewer and both 50-amp and 30-amp electric right at the pad, '
      'so nothing runs off your tanks and nothing runs out mid-stay.'),
     ('Site-specific Wi-Fi', '/media/pr4lkbqp/wifi.jpg', 'A guest working on a laptop at the park', 'Your own hotspot, not a shared park signal',
@@ -1406,7 +1415,7 @@ def explore():
     rows = ''.join(f'<tr><th scope="row">{n}</th><td>{m}</td><td>{t}</td></tr>' for n, m, t in DRIVE)
     trips = [
         ('Yellowstone National Park', '/media/fgwolhjr/dji_0104.jpg',
-         'The park from the air, two hours from Yellowstone&#39;s west entrance',
+         "The park from the air, two hours from Yellowstone's west entrance",
          'About 2 hours north on Highway 20 to the West Entrance. Idaho Falls is the closest major city '
          'to that gate, which is why so many people base here instead of fighting for a pad in a gateway town.'),
         ('Grand Teton &amp; Jackson Hole', '/media/ugoembul/grandtargheeskiresort-1024x699.jpg',
