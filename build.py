@@ -5,7 +5,7 @@ Static generator for the Idaho Falls Luxury RV Park redesign prototype.
 Run:  python3 build.py            -> builds for GitHub Pages (/iflrv-redesign)
       BASE= python3 build.py      -> builds for a domain root (/)
 """
-import os, re, shutil, html
+import os, re, shutil, html, json
 
 BASE = os.environ.get('BASE', '/iflrv-redesign').rstrip('/')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'docs')
@@ -47,7 +47,11 @@ def asset(path):
     return f'{u(path)}?v={h}'
 
 
-def img(src, alt, w=1200, cls='', loading='lazy', ratio=None, sizes='100vw'):
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media-sizes.json')) as _f:
+    NATIVE = {k: tuple(v) for k, v in json.load(_f).items()}
+
+
+def img(src, alt, w=1200, cls='', loading='lazy', ratio=None, sizes='100vw', hero=False):
     """Responsive image off their Umbraco media pipeline (supports width + webp).
 
     Uses WIDTH descriptors, not 1x/2x density ones. Density descriptors meant a
@@ -58,6 +62,17 @@ def img(src, alt, w=1200, cls='', loading='lazy', ratio=None, sizes='100vw'):
     # These are line-art icons and wordmarks in the media library, not photographs.
     assert not any(k in src for k in ICON_ASSETS), f'{src} is an icon/logo, not a photograph'
     assert '&#' not in alt and '&mdash;' not in alt, f'alt text must be plain: {alt!r}'
+
+    # Never request more than the source actually has. Umbraco will happily
+    # upscale — drone2.jpg is 1152px wide and was being served at 1800, which
+    # is what made the amenities hero look soft.
+    native = NATIVE.get(src)
+    if native:
+        nw, nh = native
+        if hero:
+            assert nw > nh, f'{src} is portrait ({nw}x{nh}) — wrong shape for a full-bleed hero'
+            assert nw >= 1600, f'{src} is only {nw}px wide — too small for a full-bleed hero'
+        w = min(w, nw)
 
     sep = '&' if '?' in src else '?'
     widths = [x for x in (400, 640, 900, 1200, 1600, 2000) if x <= w] or [w]
@@ -323,7 +338,7 @@ def booking_widget(compact=False):
 def cta_band(img_src, alt, heading, text, primary=('Check availability', '/rates/')):
     return f'''
 <section class="section cta-band">
-  {img(img_src, alt, 1800, loading='lazy')}
+  {img(img_src, alt, 1800, loading='lazy', hero=True)}
   <div class="wrap">
     <h2>{heading}</h2>
     <p class="lede">{text}</p>
@@ -366,7 +381,7 @@ def crumbs(items):
 def page_hero(img_src, alt, eyebrow, h1, sub):
     return f'''
 <section class="hero hero-page">
-  <div class="hero-media">{img(img_src, alt, 1800, loading='eager')}</div>
+  <div class="hero-media">{img(img_src, alt, 1800, loading='eager', hero=True)}</div>
   <div class="hero-inner"><div class="wrap">
     <span class="eyebrow" style="color:#7fd4bd">{eyebrow}</span>
     <h1>{h1}</h1>
@@ -596,7 +611,7 @@ def home():
         </div>
         <p class="mt2"><a class="btn btn-ghost-light" href="{u('/explore/')}">Plan your trip from here</a></p>
       </div>
-      <div class="split-media">{img('/media/xn3bssaz/dronesunset.jpg',
+      <div class="split-media">{img('/media/izqjmiey/iflrv-thumbnail-1.jpg',
         'Sunset over the RV park and the Snake River valley', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
@@ -605,7 +620,7 @@ def home():
 <section class="section">
   <div class="wrap">
     <div class="split reverse">
-      <div class="split-media">{img('/media/vxxccmwh/19.jpg',
+      <div class="split-media">{img('/media/2p2dzypt/idaho-falls-luxury-rv-park-20230520-046-scaled.jpg',
         'The lodge lounge with leather seating, rugs and a stone fireplace', 1000, sizes=SPLIT_SIZES)}</div>
       <div>
         <span class="eyebrow">The park</span>
@@ -746,7 +761,7 @@ def stay():
   </div>
 </section>
 
-{cta_band('/media/dronesunrise.jpg'.replace('/media/', '/media/f3pk4rhy/'),
+{cta_band('/media/f3pk4rhy/dronesunrise.jpg',
   'Sunrise over the RV park with mist on the river',
   'Ready when you are', 'Live availability, real-time pricing, and a booking that takes about ninety seconds.')}
 '''
@@ -805,7 +820,7 @@ def rv_sites():
         </ul>
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check availability</a></p>
       </div>
-      <div class="split-media">{img('/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg',
+      <div class="split-media">{img('/media/lmahz4rr/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-010.jpg',
         'A fifth wheel parked on a site beside open lawn', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
@@ -835,8 +850,8 @@ def rv_sites():
   </div>
 </section>
 
-{cta_band('/media/uybnzgyf/dji_0055.jpg',
-  'RVs parked on paved sites beside open lawn',
+{cta_band('/media/zcwasdpm/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-019.jpg',
+  'An RV and tow vehicle parked on a paved site',
   'Book a pull-through', 'Check live availability for your dates and rig length.')}
 '''
     return page('/stay/rv-sites/', 'Pull-Through &amp; Back-In RV Sites | Idaho Falls Luxury RV Park',
@@ -864,7 +879,7 @@ def casitas():
 </article>''' for t, d, s, a in feats)
 
     body = crumbs([('Home', '/'), ('Stay', '/stay/'), ('SprinterLand Casitas', None)]) + f'''
-{page_hero('/media/ldiedk2y/sprinterland-opt.jpg',
+{page_hero('/media/yunlwroj/dsc00664.jpg',
   'A SprinterLand casita shelter beside a paved site',
   'SprinterLand', 'Ten sites with an outdoor room attached',
   'Built for adventure vans and teardrops — and for anyone who would rather live outside the rig than inside it.')}
@@ -924,14 +939,14 @@ def casitas():
   </div>
 </section>
 
-{cta_band('/media/pzioqoyq/iflrv-04.jpg',
+{cta_band('/media/awnhkm3p/casita-back-in-opt.jpg',
   'The SprinterLand sign hanging under a casita shelter',
   'Ten casitas. That&#39;s it.', 'Check which dates still have one open.')}
 '''
     return page('/stay/casitas/', 'SprinterLand Casita Sites | Idaho Falls Luxury RV Park',
                 'Ten premium sites with a private casita shelter — ceiling heaters, masonry charcoal BBQ, '
                 'Adirondack chairs and a second patio. Built for adventure vans.',
-                body, active='/stay', has_hero=True, og_img='/media/ldiedk2y/sprinterland-opt.jpg')
+                body, active='/stay', has_hero=True, og_img='/media/yunlwroj/dsc00664.jpg')
 
 # ================================================================ EXTENDED
 EXT_RULES = [
@@ -956,7 +971,7 @@ EXT_RULES = [
 
 def extended():
     body = crumbs([('Home', '/'), ('Stay', '/stay/'), ('Extended &amp; Seasonal', None)]) + f'''
-{page_hero('/media/ujwlgfbg/dronesummer.jpg',
+{page_hero('/media/0hrnfqow/copy-of-img_9031-2.jpg',
   'The park from above in mid-summer with RVs on nearly every site',
   'Extended &amp; Seasonal', 'Stay a month. Stay the summer.',
   'A limited number of sites carry a discounted monthly rate, and a handful of seasonal spots run Memorial Day through Labor Day.')}
@@ -1001,7 +1016,7 @@ def extended():
   </div>
 </section>
 
-{cta_band('/media/lukjjem2/dronesunrise4.jpg',
+{cta_band('/media/xa1hraq3/iflrv-01.jpg',
   'Sunrise over the park and river',
   'Seasonal spots are limited', 'Call the office and we will walk you through what is still open.',
   primary=('Call the office', '/contact/'))}
@@ -1009,7 +1024,7 @@ def extended():
     return page('/stay/extended/', 'Extended &amp; Seasonal RV Stays | Idaho Falls Luxury RV Park',
                 'Discounted monthly rates on a limited number of sites, plus seasonal spots from Memorial '
                 'Day to Labor Day. Rules and requirements stated up front.',
-                body, active='/stay', has_hero=True, og_img='/media/ujwlgfbg/dronesummer.jpg')
+                body, active='/stay', has_hero=True, og_img='/media/0hrnfqow/copy-of-img_9031-2.jpg')
 
 # ================================================================ RATES
 # ⚑ Real nightly rates are published nowhere on the current site. Fill these in
@@ -1037,7 +1052,7 @@ def rates():
         f'<tr><th scope="row">{n}</th><td><b>{amt}</b></td><td>{note}</td></tr>' for n, amt, note in FEES)
 
     body = crumbs([('Home', '/'), ('Rates &amp; Availability', None)]) + f'''
-{page_hero('/media/dripxrjd/dronesunrise3.jpg',
+{page_hero('/media/cmrdvlne/dronesunrise.jpg',
   'Aerial view of the park at sunrise beside the Snake River',
   'Rates &amp; Availability', 'What it costs, before you click away',
   'Dates, rig length and site type — searched here, carried into the booking engine.')}
@@ -1163,7 +1178,7 @@ def amenities():
 </article>''' for t, s, alt, sub, d in AMENITIES)
 
     body = crumbs([('Home', '/'), ('The Park', None), ('Amenities', None)]) + f'''
-{page_hero('/media/nbkpdav5/drone2.jpg',
+{page_hero('/media/ee0h2zby/copy-of-img_9038.jpg',
   'Aerial view of the park showing the lodge, courts and open lawn',
   'The Park', 'Everything that comes with the site',
   'A homebuilder&#39;s standards applied to an RV park — which mostly shows up in the things you notice on day two.')}
@@ -1200,7 +1215,7 @@ def amenities():
     return page('/park/amenities/', 'Amenities | Idaho Falls Luxury RV Park',
                 'Full hookups, private Wi-Fi per site, five tiled bathrooms with heated floors, two '
                 'pickleball courts, a fenced dog park, 24-hour laundry and Greenbelt access.',
-                body, active='/park', has_hero=True, og_img='/media/nbkpdav5/drone2.jpg')
+                body, active='/park', has_hero=True, og_img='/media/ee0h2zby/copy-of-img_9038.jpg')
 
 # ================================================================ PARK MAP
 def park_map():
@@ -1263,8 +1278,8 @@ def park_map():
   </div>
 </section>
 
-{cta_band('/media/fgwolhjr/dji_0104.jpg',
-  'The park and the Snake River from the air',
+{cta_band('/media/ggdjhmup/idaho-falls-luxury-rv-park-20230519-035-scaled.jpg',
+  'Guests playing on the pickleball courts',
   'Found your spot?', 'Check which sites are open on your dates.')}
 '''
     return page('/park/map/', 'Park Map | Idaho Falls Luxury RV Park',
@@ -1275,9 +1290,9 @@ def park_map():
 # ================================================================ GALLERY
 GALLERY = [
     ('/media/cy0lrm2y/droneparknexttoriver.jpg', 'The park alongside the Snake River from the air'),
-    ('/media/xn3bssaz/dronesunset.jpg', 'Sunset from above the park'),
+    ('/media/izqjmiey/iflrv-thumbnail-1.jpg', 'Sunset from above the park'),
     ('/media/0ivgvqeu/iflrv-14.jpg', 'A rainbow arcing over the RV sites'),
-    ('/media/vxxccmwh/19.jpg', 'The lodge lounge with leather seating and a stone fireplace'),
+    ('/media/2p2dzypt/idaho-falls-luxury-rv-park-20230520-046-scaled.jpg', 'The lodge lounge with leather seating and a stone fireplace'),
     ('/media/qcxgwjfm/18-1.png', 'Guests gathered around the outdoor community fireplace'),
     ('/media/ejujv3c2/iflrv-13.jpg', 'The lodge with RVs parked outside'),
     ('/media/va4dcxhk/iflrv-02.jpg', 'The lodge exterior and its stone chimney'),
@@ -1286,9 +1301,9 @@ GALLERY = [
     ('/media/ed0cytiu/dsc00767.jpg', 'Bundles of firewood for sale at the park'),
     ('/media/lbodjrcc/1-1-scaled-1.jpg', 'The on-site laundry room'),
     ('/media/qcrgezpe/21.jpg', 'A private bathroom with a fully tiled shower'),
-    ('/media/ldiedk2y/sprinterland-opt.jpg', 'A casita shelter beside a paved site'),
+    ('/media/yunlwroj/dsc00664.jpg', 'A casita shelter beside a paved site'),
     ('/media/2eafmd2d/casita-back-in-2.jpg', 'Inside a casita, with privacy walls and Adirondack chairs'),
-    ('/media/pzioqoyq/iflrv-04.jpg', 'The SprinterLand sign hanging under a casita shelter'),
+    ('/media/awnhkm3p/casita-back-in-opt.jpg', 'The SprinterLand sign hanging under a casita shelter'),
     ('/media/tsckx5wy/fallcasita57charcuterie.png', 'A charcuterie board laid out at a casita'),
     ('/media/2hbfonwd/ultimate-pull-in.jpg', 'The Ultimate Pull-In shelter, picnic table and fire pit'),
     ('/media/tuqnbdu5/iflrv-05.jpg', 'A fire pit on the open lawn'),
@@ -1348,7 +1363,7 @@ def gallery():
   </div>
 </section>
 
-{cta_band('/media/ujwlgfbg/dronesummer.jpg',
+{cta_band('/media/0hrnfqow/copy-of-img_9031-2.jpg',
   'The park from the air in summer',
   'Seen enough?', 'Check availability for your dates.')}
 '''
@@ -1509,7 +1524,7 @@ def policies():
   </div>
 </section>
 
-{cta_band('/media/dokcru1q/tempimagesjkrtz-1.jpg',
+{cta_band('/media/orfksz25/lrvp.jpg',
   'The park entrance sign lit at dusk',
   'Questions we did not answer?', 'The office picks up.',
   primary=('Contact us', '/contact/'))}
@@ -1517,7 +1532,7 @@ def policies():
     return page('/park/policies/', 'Park Policies | Idaho Falls Luxury RV Park',
                 'Cancellation windows, pet rules, check-in and check-out, parking and quiet hours — grouped '
                 'by when they matter, from before you book to while you are here.',
-                body, active='/park', og_img='/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg')
+                body, active='/park', og_img='/media/lmahz4rr/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-010.jpg')
 
 # ================================================================ EXPLORE
 def explore():
@@ -1647,7 +1662,7 @@ def explore():
   </div>
 </section>
 
-{cta_band('/media/xn3bssaz/dronesunset.jpg',
+{cta_band('/media/izqjmiey/iflrv-thumbnail-1.jpg',
   'Sunset over the park',
   'Make this your basecamp', 'One site, a dozen day trips, and a hot shower waiting at the end of each one.')}
 '''
@@ -1805,8 +1820,8 @@ def faq():
   </div>
 </section>
 <section class="section" style="padding-top:0"><div class="wrap">{groups}</div></section>
-{cta_band('/media/uybnzgyf/dji_0055.jpg',
-  'RVs parked on paved sites beside open lawn',
+{cta_band('/media/zcwasdpm/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-019.jpg',
+  'An RV and tow vehicle parked on a paved site',
   'Answered?', 'Check availability for your dates.')}
 '''
     return page('/faq/', 'Frequently Asked Questions | Idaho Falls Luxury RV Park',
@@ -2057,6 +2072,13 @@ def validate():
         for tag in re.findall(r'<img\b[^>]*>', s):
             if 'alt=' not in tag or re.search(r'alt=""', tag):
                 errors.append(f'{rel}: <img> with missing or empty alt')
+            # requesting above native width makes Umbraco upscale, which is what
+            # made the amenities hero blurry
+            for path, req in re.findall(r'(/media/[^?\s"]+)\?width=(\d+)', tag):
+                nat = NATIVE.get(path)
+                if nat and int(req) > nat[0]:
+                    errors.append(f'{rel}: {path} requested at {req}px but is only '
+                                  f'{nat[0]}px native (would upscale)')
 
         t = re.search(r'<title>(.*?)</title>', s, re.S)
         d = re.search(r'<meta name="description" content="(.*?)">', s, re.S)
