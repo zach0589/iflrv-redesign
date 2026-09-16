@@ -9,7 +9,11 @@ import os, re, shutil, html
 
 BASE = os.environ.get('BASE', '/iflrv-redesign').rstrip('/')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'docs')
-SITE = 'https://zach0589.github.io' + BASE
+# The canonical origin. MUST be overridden for a real deployment, or every
+# canonical, og:url, breadcrumb and sitemap entry would point at the GitHub
+# preview and tell Google the prototype is the authoritative site.
+SITE = os.environ.get('SITE_URL', 'https://zach0589.github.io' + BASE).rstrip('/')
+PROD = bool(os.environ.get('SITE_URL'))
 MEDIA = 'https://idahofallsluxuryrvpark.com'
 
 PHONE = '(208) 881-4562'
@@ -23,6 +27,8 @@ def u(path):
     """Internal URL, prefixed for whatever root the site is served from."""
     return (BASE + path) if path.startswith('/') else path
 
+CARD_SIZES = '(min-width:1100px) 30vw, (min-width:700px) 45vw, 100vw'
+SPLIT_SIZES = '(min-width:740px) 48vw, 100vw'
 ICON_ASSETS = ('water-heater', 'bus-stop', 'lounge.png', 'camper-van', 'barbeque',
                'light-bulb', 'mountain', 'eating.png', 'road.png', 'cityscape',
                'statue-of-liberty', 'telephone', 'mail-2', 'reservation.png',
@@ -41,21 +47,29 @@ def asset(path):
     return f'{u(path)}?v={h}'
 
 
-def img(src, alt, w=1200, cls='', loading='lazy', ratio=None):
-    """Responsive image off their Umbraco media pipeline (supports width + webp)."""
-    sep = '&' if '?' in src else '?'
-    one = f'{MEDIA}{src}{sep}width={w}&format=webp'
-    two = f'{MEDIA}{src}{sep}width={w*2}&format=webp'
-    c = f' class="{cls}"' if cls else ''
-    r = f' style="aspect-ratio:{ratio}"' if ratio else ''
-    # NOTE: alt text is mandatory here — every image on the live site ships alt=""
+def img(src, alt, w=1200, cls='', loading='lazy', ratio=None, sizes='100vw'):
+    """Responsive image off their Umbraco media pipeline (supports width + webp).
+
+    Uses WIDTH descriptors, not 1x/2x density ones. Density descriptors meant a
+    hero asking for w=1800 also emitted a 3600px candidate, which a 390px phone
+    at DPR2 would happily download.
+    """
     assert alt, f'missing alt text for {src}'
     # These are line-art icons and wordmarks in the media library, not photographs.
-    # Using one as a photo is the single most repeated mistake in this rebuild.
     assert not any(k in src for k in ICON_ASSETS), f'{src} is an icon/logo, not a photograph'
     assert '&#' not in alt and '&mdash;' not in alt, f'alt text must be plain: {alt!r}'
-    return (f'<img{c}{r} src="{one}" srcset="{one} 1x, {two} 2x" '
+
+    sep = '&' if '?' in src else '?'
+    widths = [x for x in (400, 640, 900, 1200, 1600, 2000) if x <= w] or [w]
+    if widths[-1] != w:
+        widths.append(w)
+    cand = ', '.join(f'{MEDIA}{src}{sep}width={x}&format=webp {x}w' for x in widths)
+    c = f' class="{cls}"' if cls else ''
+    r = f' style="aspect-ratio:{ratio}"' if ratio else ''
+    return (f'<img{c}{r} src="{MEDIA}{src}{sep}width={widths[-1]}&format=webp" '
+            f'srcset="{cand}" sizes="{sizes}" '
             f'alt="{html.escape(alt)}" loading="{loading}" decoding="async">')
+
 
 # ---------------------------------------------------------------- navigation
 NAV = [
@@ -86,15 +100,16 @@ NAV = [
 def nav_html(active):
     out = []
     for label, href, panel in NAV:
-        cur = ' aria-current="page"' if active and active.startswith(href.rstrip('/')) and href != '/' else ''
+        # only the exact current page, never an ancestor section
+        cur = ' aria-current="page"' if active and active.rstrip('/') == href.rstrip('/') and href != '/' else ''
         if panel:
             pid = 'panel-' + re.sub(r'[^a-z]', '', label.lower())
             links = ''.join(
                 f'<li><a href="{u(h)}">{t}<small>{d}</small></a></li>' for h, t, d in panel)
             out.append(
                 f'<li class="nav-item has-panel" data-open="false">'
-                f'<button class="nav-link" aria-expanded="false" aria-controls="{pid}"{cur}>'
-                f'{label}<span class="chev" aria-hidden="true"></span></button>'
+                f'<a class="nav-link" href="{u(href)}" aria-expanded="false" aria-controls="{pid}"{cur}>'
+                f'{label}<span class="chev" aria-hidden="true"></span></a>'
                 f'<ul class="nav-panel" id="{pid}">{links}</ul></li>')
         else:
             out.append(f'<li class="nav-item"><a class="nav-link" href="{u(href)}"{cur}>{label}</a></li>')
@@ -224,6 +239,7 @@ def page(slug, title, desc, body, active=None, has_hero=False, jsonld='', og_img
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="{MEDIA}">
 <link href="https://fonts.googleapis.com/css2?family=Mohave:wght@400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script>document.documentElement.className+=' js';</script>
 <link rel="stylesheet" href="{asset('/assets/css/site.css')}">
 {ld}
 </head>
@@ -249,8 +265,9 @@ def write(slug, content):
 def booking_widget(compact=False):
     """The single biggest fix: let people search before they leave for NewBook."""
     return f'''
-<form class="booking" data-booking-form>
-  <div class="booking-grid booking-grid-6">
+<form class="booking" data-booking-form
+      action="{BOOK}" method="get" target="_blank" rel="noopener">
+  <div class="booking-grid booking-grid-7">
     <div class="booking-field">
       <label for="arrive{compact}">Arrive</label>
       <input type="date" id="arrive{compact}" name="arrive" required>
@@ -259,15 +276,20 @@ def booking_widget(compact=False):
       <label for="depart{compact}">Depart</label>
       <input type="date" id="depart{compact}" name="depart" required>
     </div>
-    <div class="booking-field">
-      <label for="guests{compact}">Guests</label>
-      <select id="guests{compact}" name="adults">
-        <option value="2">2 guests</option>
-        <option value="1">1 guest</option>
-        <option value="3">3 guests</option>
-        <option value="4">4 guests</option>
-        <option value="5">5 guests</option>
-        <option value="6">6+ guests</option>
+    <div class="booking-field booking-narrow">
+      <label for="adults{compact}">Adults</label>
+      <select id="adults{compact}" name="adults">
+        <option value="2">2</option><option value="1">1</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6+</option>
+      </select>
+    </div>
+    <div class="booking-field booking-narrow">
+      <label for="children{compact}">Children</label>
+      <select id="children{compact}" name="children">
+        <option value="0">0</option><option value="1">1</option>
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4">4+</option>
       </select>
     </div>
     <div class="booking-field">
@@ -294,7 +316,7 @@ def booking_widget(compact=False):
   </div>
   <p class="booking-note">
     <span aria-hidden="true">&#128274;</span>
-    Secure booking through NewBook &middot; free cancellation up to 48 hours before arrival
+    Availability and pricing come back from NewBook &middot; free cancellation up to 48 hours before arrival
   </p>
 </form>'''
 
@@ -312,20 +334,28 @@ def cta_band(img_src, alt, heading, text, primary=('Check availability', '/rates
   </div>
 </section>'''
 
+SECTION_HOME = {'The Park': '/park/amenities/', 'Stay': '/stay/', 'Explore': '/explore/'}
+
+
 def crumbs(items):
     """Visual breadcrumbs plus the matching BreadcrumbList, emitted together so
     the two can never drift apart."""
     import json
     parts, el = [], []
+    last = len(items) - 1
     for i, (label, href) in enumerate(items):
-        if href and i < len(items) - 1:
-            parts.append(f'<a href="{u(href)}">{label}</a>')
+        if i < last:
+            parts.append(f'<a href="{u(href)}">{label}</a>' if href else f'<span>{label}</span>')
         else:
-            parts.append(f'<span aria-current="page">{label}</span>' if i else label)
+            parts.append(f'<span aria-current="page">{label}</span>')
         node = {'@type': 'ListItem', 'position': i + 1,
                 'name': html.unescape(re.sub('<[^>]+>', '', label))}
-        if href:
-            node['item'] = SITE + href
+        # every node except the last needs an `item` URL, or Google drops the
+        # whole BreadcrumbList. Intermediate labels with no page of their own
+        # resolve to the section landing page.
+        if i < last:
+            node['item'] = SITE + (href or SECTION_HOME.get(
+                html.unescape(re.sub('<[^>]+>', '', label)), '/'))
         el.append(node)
     ld = json.dumps({'@context': 'https://schema.org', '@type': 'BreadcrumbList',
                      'itemListElement': el})
@@ -401,7 +431,7 @@ def home():
     for href, src, alt, name, count, blurb, feats in SITE_CARDS:
         cards += f'''
 <article class="card">
-  <div class="card-media">{img(src, alt, 720)}</div>
+  <div class="card-media">{img(src, alt, 720, sizes=CARD_SIZES)}</div>
   <div class="card-body">
     <div class="tag-row"><span class="tag">{count}</span></div>
     <h3>{name}</h3>
@@ -478,6 +508,32 @@ def home():
   </div>
 </section>
 
+<section class="section-sm section-sand">
+  <div class="wrap">
+    <div class="section-head center" style="margin-bottom:1.5rem">
+      <span class="eyebrow">What guests say</span>
+      <h2 style="margin-bottom:.4rem">4.8 out of 5</h2>
+      <p class="mb0">from roughly 910 reviews across Google, RV Life, Campendium and Tripadvisor</p>
+    </div>
+    <div class="grid g3">
+      <blockquote class="card" style="padding:1.5rem;margin:0">
+        <p style="font-size:.97rem">&ldquo;Spacious, level concrete sites and exceptionally clean
+          facilities.&rdquo;</p></blockquote>
+      <blockquote class="card" style="padding:1.5rem;margin:0">
+        <p style="font-size:.97rem">&ldquo;Restrooms are spacious and clean, the showers run hot for
+          a long time, and the laundry has new machines.&rdquo;</p></blockquote>
+      <blockquote class="card" style="padding:1.5rem;margin:0">
+        <p style="font-size:.97rem">&ldquo;Only complaint is the railroad tracks &mdash; but they give
+          you ear plugs.&rdquo;</p></blockquote>
+    </div>
+    {PROTO('<b>Verify, then wire this to live data.</b> The 4.8 / ~910 figure is aggregated from '
+           'third-party listings as of September 2026 and the quotes are paraphrased from public reviews. '
+           'Before launch, pull the rating from your own Google profile, quote reviewers verbatim with '
+           'attribution, and link out. I deliberately did <b>not</b> add aggregateRating structured data: '
+           'Google permits that only for reviews you collect yourself, not third-party aggregates.')}
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="section-head center">
@@ -517,7 +573,7 @@ def home():
         <p class="mt2"><a class="btn btn-ghost-light" href="{u('/explore/')}">Plan your trip from here</a></p>
       </div>
       <div class="split-media">{img('/media/xn3bssaz/dronesunset.jpg',
-        'Sunset over the RV park and the Snake River valley', 1000)}</div>
+        'Sunset over the RV park and the Snake River valley', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -526,7 +582,7 @@ def home():
   <div class="wrap">
     <div class="split reverse">
       <div class="split-media">{img('/media/vxxccmwh/19.jpg',
-        'The lodge lounge with leather seating, rugs and a stone fireplace', 1000)}</div>
+        'The lodge lounge with leather seating, rugs and a stone fireplace', 1000, sizes=SPLIT_SIZES)}</div>
       <div>
         <span class="eyebrow">The park</span>
         <h2>Built by a homebuilder, not a developer</h2>
@@ -550,7 +606,7 @@ def home():
   <div class="wrap">
     <div class="split">
       <div class="split-media">{img('/media/12cbkpnp/sunriselandscape.jpg',
-        'The park and the Snake River from the air at sunrise', 1000)}</div>
+        'The park and the Snake River from the air at sunrise', 1000, sizes=SPLIT_SIZES)}</div>
       <div>
         <span class="eyebrow">Our story</span>
         <h2>It started as a drive-in theater</h2>
@@ -643,8 +699,14 @@ def stay():
         <tbody>{rows}</tbody>
       </table>
     </div>
-    <p class="small muted mt2">All 59 sites are paved, level and full-hookup. The 10 SprinterLand casita
-      sites are part of the 59 &mdash; they are back-in sites with a casita shelter added.</p>
+    <p class="small muted mt2">58 of the 59 sites are paved and level; the Ultimate Pull-In is a
+      grassy site with a paved patio. All 59 are full-hookup. The 10 SprinterLand casita sites are
+      part of the 59 &mdash; back-in sites with a casita shelter added.</p>
+    {PROTO('<b>Confirm the surface count.</b> Your About page lists 32 + 1 + 26 = 59 sites all described '
+           'as paved, while the Casita Sites page calls the Ultimate Pull-In a &ldquo;large grassy site&rdquo;. '
+           'This rebuild says 58 paved + 1 grassy. Also confirm the extended-stay RV age limit &mdash; your '
+           'live site says <b>10 years or newer</b>, and a reviewer of this prototype asserted it is now 15. '
+           'I could not verify that, so 10 stands.')}
   </div>
 </section>
 
@@ -676,7 +738,7 @@ def rv_sites():
 {page_hero('/media/eslbo5ci/idaho-falls-luxury-rv-park-idaho-falls-id-20220929-016.jpg',
   'A motorhome pulling into a paved site at the park',
   'RV Sites', 'Pull-through &amp; back-in',
-  '58 of our 59 sites, every one of them 36 by 80 feet of paved, level, fully serviced pad.')}
+  '58 of our 59 sites &mdash; every one 36 by 80 feet of paved, level, fully serviced pad.')}
 
 <section class="section">
   <div class="wrap">
@@ -697,7 +759,7 @@ def rv_sites():
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check availability</a></p>
       </div>
       <div class="split-media">{img('/media/fgwolhjr/dji_0104.jpg',
-        'Rows of paved full-hookup sites seen from the air', 1000)}</div>
+        'Rows of paved full-hookup sites seen from the air', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -720,7 +782,7 @@ def rv_sites():
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check availability</a></p>
       </div>
       <div class="split-media">{img('/media/30ppmizv/idaho-falls-luxury-rv-park-20230519-008-1.jpg',
-        'A fifth wheel parked on a site beside open lawn', 1000)}</div>
+        'A fifth wheel parked on a site beside open lawn', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -773,7 +835,7 @@ def casitas():
     ]
     cards = ''.join(f'''
 <article class="card">
-  <div class="card-media">{img(s, a, 700)}</div>
+  <div class="card-media">{img(s, a, 700, sizes=CARD_SIZES)}</div>
   <div class="card-body"><h3>{t}</h3><p>{d}</p></div>
 </article>''' for t, d, s, a in feats)
 
@@ -814,7 +876,7 @@ def casitas():
         </ul>
       </div>
       <div class="split-media">{img('/media/2f4jr1ka/dsc00665.jpg',
-        'A Sprinter van parked at its site beside the picnic table', 1000)}</div>
+        'A Sprinter van parked at its site beside the picnic table', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -833,7 +895,7 @@ def casitas():
         <p class="mt2"><a class="btn btn-primary" href="{u('/rates/')}">Check if it&#39;s open</a></p>
       </div>
       <div class="split-media">{img('/media/qlbhvwn3/ultimate-pull-in-opt.jpg',
-        'The Ultimate Pull-In site with its custom shelter and masonry barbecue', 1000)}</div>
+        'The Ultimate Pull-In site with its custom shelter and masonry barbecue', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -1072,7 +1134,7 @@ AMENITIES = [
 def amenities():
     cards = ''.join(f'''
 <article class="card">
-  <div class="card-media">{img(s, alt, 700)}</div>
+  <div class="card-media">{img(s, alt, 700, sizes=CARD_SIZES)}</div>
   <div class="card-body"><h3>{t}</h3><p class="small" style="color:var(--green-dk);font-weight:600;margin-bottom:.5rem">{sub}</p><p>{d}</p></div>
 </article>''' for t, s, alt, sub, d in AMENITIES)
 
@@ -1135,8 +1197,8 @@ def park_map():
   <div class="wrap">
     <span class="eyebrow">Park map</span>
     <h1>See exactly where your site sits</h1>
-    <p class="lede" style="max-width:60ch">Drag to pan, use the buttons to zoom. Sixty-plus acres of the
-      old Sky-Vu Drive-In, laid out so the river side stays open.</p>
+    <p class="lede" style="max-width:60ch">Drag to pan, use the buttons to zoom. The old Sky-Vu
+      Drive-In, laid out so the river side stays open.</p>
   </div>
 </section>
 
@@ -1221,7 +1283,7 @@ GALLERY = [
 ]
 
 def gallery():
-    figs = ''.join(f'<figure>{img(s, a, 700)}</figure>' for s, a in GALLERY)
+    figs = ''.join(f'<figure>{img(s, a, 700, sizes=CARD_SIZES)}</figure>' for s, a in GALLERY)
     body = crumbs([('Home', '/'), ('The Park', None), ('Gallery &amp; Tour', None)]) + f'''
 <section class="section-sm" style="padding-top:clamp(2rem,5vw,3.5rem)">
   <div class="wrap">
@@ -1456,7 +1518,7 @@ def explore():
     ]
     cards = ''.join(f'''
 <article class="card">
-  <div class="card-media">{img(s, a, 700)}</div>
+  <div class="card-media">{img(s, a, 700, sizes=CARD_SIZES)}</div>
   <div class="card-body"><h3>{t}</h3><p>{d}</p></div>
 </article>''' for t, s, a, d in trips)
 
@@ -1483,7 +1545,7 @@ def explore():
         </div>
       </div>
       <div class="split-media">{img('/media/cmrdvlne/dronesunrise.jpg',
-        'The park and river from above at first light', 1000)}</div>
+        'The park and river from above at first light', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -1521,7 +1583,7 @@ def explore():
         </ul>
       </div>
       <div class="split-media">{img('/media/pgnf21pp/mws-still-01-1.png',
-        'The waterfalls on the Snake River in downtown Idaho Falls', 1000)}</div>
+        'The waterfalls on the Snake River in downtown Idaho Falls', 1000, sizes=SPLIT_SIZES)}</div>
     </div>
   </div>
 </section>
@@ -1545,7 +1607,7 @@ def explore():
   <div class="wrap">
     <div class="split">
       <div class="split-media">{img('/media/zrmhig1f/fireworks-in-sky-2022-10-31-23-48-55-utc.jpg',
-        'Fireworks bursting over a night sky', 1000)}</div>
+        'Fireworks bursting over a night sky', 1000, sizes=SPLIT_SIZES)}</div>
       <div>
         <span class="eyebrow">The big week</span>
         <h2>4th of July in Idaho Falls</h2>
@@ -1655,6 +1717,15 @@ FAQ = [
    'Yes. There is a playground, open lawn space, bikes and safe paved roads throughout.'),
   ('q28', 'Do you have a playground?',
    'Yes &mdash; swings, a small climbing structure, and a large lawn for frisbee or catch.'),
+ ]),
+ ('Good to know', [
+  ('q-train', 'Will I hear trains at night?',
+   'Yes, some of the time. A rail line runs near the park and trains pass during the day and '
+   'overnight. Light sleepers should plan for it. Ask at the office if you would prefer a site '
+   'further from the tracks, and we keep ear plugs at the desk.'),
+  ('q-road', 'Is there road or highway noise?',
+   'The park is within 2 miles of Interstate 15 and Highway 20, which is exactly what makes it so '
+   'easy to reach. You will hear some traffic, particularly on the highway side of the park.'),
  ]),
  ('Stays &amp; policies', [
   ('q29', 'Are you open year-round?',
@@ -1918,7 +1989,104 @@ PAGES = [
     ('/contact/',         contact),
 ]
 
+
+def validate():
+    """The checks the README claims run on every build. They now actually do."""
+    import json as _json
+    from html.parser import HTMLParser
+
+    VOID = {'area','base','br','col','embed','hr','img','input','link','meta','source','track','wbr'}
+
+    class Balance(HTMLParser):
+        def __init__(s):
+            super().__init__(); s.stack = []; s.bad = []
+        def handle_starttag(s, t, a):
+            if t not in VOID: s.stack.append(t)
+        def handle_endtag(s, t):
+            if t in VOID: return
+            if not s.stack: s.bad.append(f'stray </{t}>'); return
+            if s.stack[-1] == t: s.stack.pop()
+            elif t in s.stack:
+                while s.stack[-1] != t: s.bad.append('unclosed <%s>' % s.stack.pop())
+                s.stack.pop()
+            else: s.bad.append(f'stray </{t}>')
+
+    pages = {BASE + s for s, _ in PAGES}
+    errors = []
+    files = []
+    for root, _, names in os.walk(OUT):
+        for n in names:
+            if n.endswith('.html'): files.append(os.path.join(root, n))
+
+    for f in sorted(files):
+        rel = f[len(OUT):]
+        s = open(f, encoding='utf-8').read()
+
+        bal = Balance(); bal.feed(s)
+        for e in bal.bad + ['unclosed <%s>' % t for t in bal.stack]:
+            errors.append(f'{rel}: {e}')
+
+        n_h1 = len(re.findall(r'<h1[\s>]', s))
+        if n_h1 != 1:
+            errors.append(f'{rel}: {n_h1} <h1> elements, expected exactly 1')
+
+        for tag in re.findall(r'<img\b[^>]*>', s):
+            if 'alt=' not in tag or re.search(r'alt=""', tag):
+                errors.append(f'{rel}: <img> with missing or empty alt')
+
+        t = re.search(r'<title>(.*?)</title>', s, re.S)
+        d = re.search(r'<meta name="description" content="(.*?)">', s, re.S)
+        if not t or len(html.unescape(t.group(1))) > 60:
+            errors.append(f'{rel}: title missing or over 60 chars')
+        if not d or not (70 <= len(html.unescape(d.group(1))) <= 160):
+            errors.append(f'{rel}: meta description missing or outside 70-160 chars')
+
+        ids = re.findall(r'\bid="([^"]+)"', s)
+        for dup in {i for i in ids if ids.count(i) > 1}:
+            errors.append(f'{rel}: duplicate id "{dup}"')
+        for ctl in re.findall(r'aria-controls="([^"]+)"', s):
+            if ctl not in ids:
+                errors.append(f'{rel}: aria-controls="{ctl}" has no matching element')
+        for lf in re.findall(r'<label[^>]*for="([^"]+)"', s):
+            if lf not in ids:
+                errors.append(f'{rel}: label for="{lf}" has no matching control')
+        # the nav link and the last breadcrumb may each mark the current page;
+        # a third means a section ancestor is wrongly claiming to be it
+        if s.count('aria-current="page"') > 2:
+            errors.append(f'{rel}: {s.count(chr(34).join(["aria-current=", "page", ""]))} aria-current="page" (max 2)')
+
+        for block in re.findall(r'<script type="application/ld\+json">([\s\S]*?)</script>', s):
+            try:
+                data = _json.loads(block)
+            except ValueError as e:
+                errors.append(f'{rel}: invalid JSON-LD ({e})'); continue
+            if data.get('@type') == 'BreadcrumbList':
+                el = data['itemListElement']
+                for node in el[:-1]:
+                    if 'item' not in node:
+                        errors.append(f'{rel}: breadcrumb "{node["name"]}" missing required item URL')
+
+        for href in re.findall(r'(?:href|src)="(' + re.escape(BASE) + r'[^"#?]*)"', s):
+            if re.search(r'\.(css|js|mp4|jpg|jpeg|png|webp)$', href):
+                if not os.path.exists(OUT + href[len(BASE):]):
+                    errors.append(f'{rel}: missing asset {href}')
+            elif href not in pages:
+                errors.append(f'{rel}: internal link to unbuilt page {href}')
+
+        if PROD and 'github.io' in s:
+            errors.append(f'{rel}: production output still references github.io')
+
+    if errors:
+        for e in errors[:40]:
+            print('  FAIL', e)
+        raise SystemExit(f'validation failed: {len(errors)} problem(s)')
+    print(f'   validated {len(files)} pages: h1, alt, metadata lengths, ids, aria, '
+          f'JSON-LD, breadcrumbs, internal links')
+
+
 def main():
+    if PROD and 'github.io' in SITE:
+        raise SystemExit('refusing to build: SITE_URL still points at github.io')
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     os.makedirs(OUT)
@@ -1942,6 +2110,7 @@ def main():
     with open(os.path.join(OUT, 'robots.txt'), 'w', encoding='utf-8') as f:
         f.write(f'User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n')
     print('   /sitemap.xml, /robots.txt  (the live site returns 404 for sitemap.xml)')
+    validate()
     print('\nDone.', len(PAGES) + 1, 'pages.')
 
 if __name__ == '__main__':

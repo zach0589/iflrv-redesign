@@ -13,9 +13,9 @@
   --sand-2:#efe9dd;
   --ink:#17241f;
   --body:#44524c;
-  --muted:#6d7b75;
+  --muted:#5b6862;
   --line:#e0d9cb;
-  --gold:#b08d36;
+  --gold:#8a6d1f;
   --white:#fff;
 
   --wrap:1200px;
@@ -56,7 +56,7 @@ p:last-child{margin-bottom:0}
 hr{border:0;border-top:1px solid var(--line);margin:2.5rem 0}
 
 /* --- focus: visible for keyboard users everywhere (live site had none) --- */
-:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:4px}
+:focus-visible{outline:3px solid #1b5d4e;box-shadow:0 0 0 6px rgba(255,255,255,.9);outline-offset:3px;border-radius:4px}
 .skip{
   position:absolute;left:8px;top:-60px;z-index:2000;background:var(--ink);color:#fff;
   padding:12px 20px;border-radius:0 0 var(--r-sm) var(--r-sm);font-weight:600;text-decoration:none;
@@ -163,8 +163,9 @@ body.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-4
   .nav{
     position:fixed;inset:calc(var(--hdr) + 38px) 0 0 0;background:#fff;flex-direction:column;
     align-items:stretch;gap:0;padding:1rem var(--gut) 3rem;overflow-y:auto;
-    transform:translateX(100%);transition:transform .28s ease;
+    transform:none;transition:transform .28s ease;
   }
+  .js .nav{transform:translateX(100%)}
   body.nav-open .nav{transform:translateX(0)}
   body.nav-open{overflow:hidden}
   .nav-link{color:var(--ink)!important;font-size:1.1rem;padding:.85em .2em;width:100%;justify-content:space-between;border-bottom:1px solid var(--line);border-radius:0}
@@ -252,9 +253,9 @@ body.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-4
 
 /* ============ generic grids & cards ============ */
 .grid{display:grid;gap:clamp(1.25rem,2.5vw,2rem)}
-.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.g3{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
 
 .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:transform .22s,box-shadow .22s}
 .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
@@ -283,7 +284,7 @@ body.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-4
 .features.light li::before{background-color:#7fd4bd}
 
 /* split image + text */
-.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:clamp(2rem,5vw,4.5rem);align-items:center}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:clamp(2rem,5vw,4.5rem);align-items:center}
 .split-media{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-lg)}
 .split-media img{width:100%;aspect-ratio:4/3;object-fit:cover}
 .split.reverse .split-media{order:2}
@@ -307,7 +308,7 @@ body.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-4
 .compare tbody th{font-weight:700;color:var(--ink);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;width:190px;background:#fdfcfa}
 .compare tr:last-child td,.compare tr:last-child th{border-bottom:0}
 .compare .yes{color:var(--green);font-weight:700}
-.compare .no{color:#b5aea1}
+.compare .no{color:#6b6459}
 
 /* ============ accordion ============ */
 .acc{border-top:1px solid var(--line)}
@@ -480,8 +481,8 @@ body.has-hero .site-header{position:static}
 
 /* Collapsed accordion panels are removed from the tab order and the
    accessibility tree — a 0-height overflow:hidden panel still isn't. */
-.acc-panel{visibility:hidden;transition:height .26s ease,visibility 0s linear .26s}
-.acc-panel.is-open{visibility:visible;transition:height .26s ease,visibility 0s}
+.js .acc-panel{visibility:hidden;transition:height .26s ease,visibility 0s linear .26s}
+.js .acc-panel.is-open{visibility:visible;transition:height .26s ease,visibility 0s}
 
 /* booking widget now carries a guests field */
 .booking-grid-6{grid-template-columns:1.1fr 1.1fr .85fr .9fr 1.15fr auto}
@@ -527,3 +528,24 @@ body.has-hero .site-header{position:static}
 .hero-motion.is-paused .hero-motion-ico{
   --ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Cpath d='M0 0l8 5-8 5z'/%3E%3C/svg%3E")}
 @media (prefers-reduced-motion:reduce){.hero-video{display:none}}
+
+/* booking widget with adults/children split out */
+.booking-grid-7{grid-template-columns:1.05fr 1.05fr .5fr .55fr .85fr 1.05fr auto}
+.booking-narrow select{min-width:0}
+@media (max-width:1180px){
+  .booking-grid-7{grid-template-columns:1fr 1fr .6fr .6fr}
+  .booking-grid-7 > .booking-field:nth-child(5),
+  .booking-grid-7 > .booking-field:nth-child(6){grid-column:span 2}
+  .booking-grid-7 > .btn{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .booking-grid-7{grid-template-columns:1fr 1fr}
+  .booking-grid-7 > .booking-field:nth-child(5),
+  .booking-grid-7 > .booking-field:nth-child(6){grid-column:1/-1}
+}
+
+
+/* closed nav drawer must not be reachable by keyboard */
+@media (max-width:1040px){ .js body:not(.nav-open) .nav{visibility:hidden} .js body.nav-open .nav{visibility:visible} }
+/* the map needs to be operable without a pointer */
+.mapbox-frame:focus-visible{outline:3px solid #1b5d4e;outline-offset:-3px}

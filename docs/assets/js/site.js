@@ -4,6 +4,23 @@
 (function () {
   'use strict';
 
+  var FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+  /* Keep Tab inside an open overlay. aria-modal alone does not do this. */
+  function trapFocus(container) {
+    function onKey(e) {
+      if (e.key !== 'Tab') return;
+      var items = [].slice.call(container.querySelectorAll(FOCUSABLE))
+        .filter(function (el) { return el.offsetParent !== null || el === document.activeElement; });
+      if (!items.length) return;
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    container.addEventListener('keydown', onKey);
+    return function () { container.removeEventListener('keydown', onKey); };
+  }
+
   /* -----------------------------------------------------------
      BOOKING DEEP LINK
 
@@ -21,10 +38,12 @@
   ----------------------------------------------------------- */
   var BOOKING_BASE = 'https://bookingsus.newbook.cloud/idahofallsluxuryrvpark/index.php';
   var PARAMS = {
-    arrive:    'period_from',   // ⚑ verify
-    depart:    'period_to',     // ⚑ verify
-    adults:    'adults',        // ⚑ verify
-    category:  'category_id'    // ⚑ verify — maps to site-type IDs in NewBook
+    arrive:    'period_from',      // ⚑ verify
+    depart:    'period_to',        // ⚑ verify
+    adults:    'adults',           // ⚑ verify
+    children:  'children',         // ⚑ verify
+    rig:       'equipment_length', // ⚑ verify — was previously collected and thrown away
+    category:  'category_id'       // ⚑ verify — maps to site-type IDs in NewBook
   };
 
   function bookingUrl(data) {
@@ -43,7 +62,13 @@
 
     // sensible defaults: tonight → tomorrow, and never let depart precede arrive
     var today = new Date();
-    var iso = function (d) { return d.toISOString().slice(0, 10); };
+    var iso = function (d) {
+      // NOT toISOString(): that returns the UTC date, which is already tomorrow
+      // from ~6pm Mountain Time and would refuse a same-night arrival.
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    };
     if (arrive) {
       arrive.min = iso(today);
       arrive.addEventListener('change', function () {
@@ -62,6 +87,8 @@
         arrive: fd.get('arrive'),
         depart: fd.get('depart'),
         adults: fd.get('adults'),
+        children: fd.get('children'),
+        rig: fd.get('rig'),
         category: fd.get('category')
       }), '_blank', 'noopener');
     });
@@ -88,7 +115,9 @@
     var toggle = document.querySelector('[data-motion]');
     var label = document.querySelector('[data-motion-label]');
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var wide = window.matchMedia('(min-width: 861px)');
+    // width alone let a large phone in landscape (>860px) pull the 4.4MB loop.
+    // A fine pointer additionally excludes phones and tablets.
+    var wide = window.matchMedia('(min-width: 861px) and (pointer: fine)');
     var conn = navigator.connection || {};
     var thrifty = conn.saveData === true || /^(slow-)?2g$/.test(conn.effectiveType || '');
 
@@ -189,7 +218,10 @@
       o.dataset.open = 'false';
       o.querySelector('.nav-link').setAttribute('aria-expanded', 'false');
     });
-    document.body.classList.remove('nav-open');
+    if (document.body.classList.contains('nav-open')) {
+      setDrawer(false);
+      if (toggle) toggle.focus();
+    }
   });
 
   document.addEventListener('click', function (e) {
@@ -201,10 +233,25 @@
   });
 
   var toggle = document.querySelector('.nav-toggle');
+  var navList = document.querySelector('.nav');
+  var releaseNav = null;
+
+  function setDrawer(open) {
+    document.body.classList.toggle('nav-open', open);
+    if (!toggle) return;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    if (releaseNav) { releaseNav(); releaseNav = null; }
+    if (open && navList) {
+      releaseNav = trapFocus(navList);
+      var first = navList.querySelector(FOCUSABLE);
+      if (first) first.focus();
+    }
+  }
+
   if (toggle) {
     toggle.addEventListener('click', function () {
-      var open = document.body.classList.toggle('nav-open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      setDrawer(!document.body.classList.contains('nav-open'));
     });
   }
 
@@ -224,7 +271,20 @@
       // .is-open drives visibility, which keeps a collapsed panel's links out
       // of the tab order and out of the accessibility tree
       panel.classList.toggle('is-open', !isOpen);
-      panel.style.height = isOpen ? '0px' : panel.firstElementChild.offsetHeight + 'px';
+      if (isOpen) {
+        panel.style.height = panel.firstElementChild.offsetHeight + 'px';
+        requestAnimationFrame(function () { panel.style.height = '0px'; });
+      } else {
+        panel.style.height = panel.firstElementChild.offsetHeight + 'px';
+      }
+    });
+
+    // Once open, release the fixed height so late reflow (webfonts, text
+    // resizing, injected content) can't clip the answer.
+    panel.addEventListener('transitionend', function (e) {
+      if (e.propertyName === 'height' && panel.classList.contains('is-open')) {
+        panel.style.height = 'auto';
+      }
     });
   });
 
@@ -232,7 +292,7 @@
   window.addEventListener('resize', function () {
     document.querySelectorAll('.acc-btn[aria-expanded="true"]').forEach(function (btn) {
       var panel = document.getElementById(btn.getAttribute('aria-controls'));
-      if (panel) panel.style.height = panel.firstElementChild.offsetHeight + 'px';
+      if (panel) panel.style.height = 'auto';
     });
   });
 
@@ -288,6 +348,26 @@
       btn.addEventListener('click', function () { scale = 1; apply(); frame.scrollTo(0, 0); });
     });
 
+    // keyboard panning — the zoom buttons were operable but the panned map
+    // itself was pointer-only
+    frame.setAttribute('tabindex', '0');
+    frame.setAttribute('role', 'application');
+    frame.setAttribute('aria-label', 'Park map. Use the arrow keys to pan, plus and minus to zoom.');
+    frame.addEventListener('keydown', function (e) {
+      var step = e.shiftKey ? 240 : 80, handled = true;
+      switch (e.key) {
+        case 'ArrowLeft':  frame.scrollLeft -= step; break;
+        case 'ArrowRight': frame.scrollLeft += step; break;
+        case 'ArrowUp':    frame.scrollTop  -= step; break;
+        case 'ArrowDown':  frame.scrollTop  += step; break;
+        case '+': case '=': scale = Math.min(3.5, scale + 0.35); apply(); break;
+        case '-': case '_': scale = Math.max(1, scale - 0.35); apply(); break;
+        case 'Home': scale = 1; apply(); frame.scrollTo(0, 0); break;
+        default: handled = false;
+      }
+      if (handled) e.preventDefault();
+    });
+
     // click-drag panning
     var down = false, sx = 0, sy = 0, sl = 0, st = 0;
     frame.addEventListener('pointerdown', function (e) {
@@ -320,6 +400,7 @@
 
     var shown = box.querySelector('img');
     var opener = null;
+    var releaseBox = null;
 
     figures.forEach(function (fig) {
       var img = fig.querySelector('img');
@@ -330,6 +411,8 @@
 
       var show = function () {
         opener = document.activeElement;
+        if (releaseBox) releaseBox();
+        releaseBox = trapFocus(box);
         shown.src = img.src.replace(/width=\d+/, 'width=1600');
         shown.alt = img.alt;
         box.hidden = false;
@@ -341,6 +424,7 @@
     });
 
     var hide = function () {
+      if (releaseBox) { releaseBox(); releaseBox = null; }
       box.hidden = true;
       document.body.style.overflow = '';
       if (opener) opener.focus();

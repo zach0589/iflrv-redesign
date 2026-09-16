@@ -19,8 +19,11 @@ button that drops you into NewBook cold, with no dates, no rig length and no sit
 On the current homepage that button sits directly beneath the words *"Call or message to
 book now."*
 
-Here, a search widget (dates, rig length, site type) leads every key page and carries the
-guest's search into the booking engine. A sticky booking bar follows on mobile.
+Here, a search widget (dates, party, rig length, site type) leads every key page and hands
+all of it to NewBook. **The deep-link parameter names are unverified placeholders** — until
+they're confirmed against the real account, the handoff carries the search but cannot be
+guaranteed to prefill it. The form also has a real `action`, so it still reaches NewBook with
+JavaScript unavailable. A sticky booking bar follows on mobile.
 
 ### 2. Four products, and the nav only admitted three
 Site types were scattered across four sibling pages with no way to compare them — and the
@@ -44,7 +47,7 @@ is now checked by eye against its alt text.
 
 ### 5. Accessibility
 All 26 images on the live homepage ship `alt=""`, including the logo. Every image here has
-real alt text (verified in the build: `assert alt`). Also added: visible focus states,
+real alt text, enforced by the build's validation pass over the generated HTML. Also added: visible focus states,
 `prefers-reduced-motion`, keyboard-operable dropdowns and accordions, and an ARIA-wired
 lightbox, and collapsed accordion panels leave the tab order and the accessibility
 tree entirely (a 0-height `overflow:hidden` panel does not).
@@ -65,8 +68,9 @@ This keeps the motion and drops all of that:
 - The still behind it is **the video's own first frame** at three widths, so when
   the loop fades in nothing on screen moves.
 - The video is `preload="none"` and its source is attached by JS only when it's
-  actually wanted. **Phones, `prefers-reduced-motion` and `Save-Data`/2G visitors
-  never fetch the 4.4MB** — they get a 30–65KB still instead.
+  actually wanted. **Phones and tablets (no fine pointer), `prefers-reduced-motion`
+  and `Save-Data`/2G visitors never fetch the 4.4MB** — they get a 30–65KB still. The
+  condition is evaluated once at load, not re-evaluated on rotation.
 - A real pause control, and the loop stops decoding once it scrolls out of view.
 
 Re-encoding from the YouTube copy is lossy twice over. Hand over the original
@@ -112,12 +116,17 @@ Every one of these is flagged in the amber boxes in the UI. Nothing here invents
 
 ## Verified, not assumed
 
-Checked on every build: one `<h1>` per page, zero empty `alt` attributes, balanced
-tags, no broken `aria-controls`/`label for`/duplicate IDs, no broken internal links,
-and all 61 media URLs returning 200. A browser-driven test suite additionally
-asserts the accordion open/close contract, that the booking form collects every
-field the deep link expects, and that the hero video plays on desktop while never
-attaching its source on a narrow viewport.
+`build.py` runs a `validate()` pass over the generated HTML and **fails the build** on: a page
+without exactly one `<h1>`, any `<img>` with missing or empty `alt`, a title over 60 chars, a
+meta description outside 70–160, duplicate IDs, `aria-controls`/`label for` pointing at nothing,
+more than two `aria-current="page"`, unbalanced tags, unparseable JSON-LD, a breadcrumb missing
+its required `item` URL, an internal link to an unbuilt page, a missing asset, and — on a
+production build — any surviving reference to `github.io`.
+
+A browser-driven suite additionally asserts the accordion contract, that the booking form
+collects every field, that collapsed panels leave the tab order, that policy answers are visible
+with JavaScript disabled, that there is no overflow at 320px, and that the hero video plays on
+desktop while never attaching its source on a narrow viewport.
 
 ## Caching
 
@@ -129,9 +138,13 @@ behind the award badges after the rule had been deleted.
 ## Build
 
 ```bash
-python3 build.py          # -> docs/, pathed for GitHub Pages (/iflrv-redesign)
-BASE= python3 build.py    # -> docs/, pathed for a domain root (/)
+python3 build.py                                                   # GitHub Pages preview
+SITE_URL=https://idahofallsluxuryrvpark.com BASE= python3 build.py # production
 ```
+
+`SITE_URL` sets the canonical origin. Without it every canonical, `og:url`, breadcrumb and
+sitemap entry points at the GitHub preview — which would tell Google the prototype is the
+authoritative site. A production build that still contains `github.io` is refused.
 
 No dependencies, no build toolchain — plain Python 3 emitting static HTML.
 
