@@ -385,6 +385,42 @@
   });
 
   /* -----------------------------------------------------------
+     Birdeye review feed.
+
+     Third-party review widgets are heavy and they are not worth a single
+     millisecond of the initial render, so this mounts the iframe only once the
+     section is near the viewport. The curated quotes above it are server-
+     rendered, so the page still shows proof if this never loads at all.
+  ----------------------------------------------------------- */
+  document.querySelectorAll('[data-birdeye]').forEach(function (mount) {
+    var src = mount.dataset.src;
+    if (!src) return;  // not configured yet — leave the placeholder visible
+
+    var mounted = false;
+    function load() {
+      if (mounted) return;
+      mounted = true;
+      var frame = document.createElement('iframe');
+      frame.src = src;
+      frame.title = mount.dataset.label || 'Guest reviews';
+      frame.loading = 'lazy';
+      frame.height = mount.dataset.height || 520;
+      frame.setAttribute('scrolling', 'no');
+      mount.textContent = '';
+      mount.appendChild(frame);
+    }
+
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (e) {
+        if (e[0].isIntersecting) { load(); io.disconnect(); }
+      }, { rootMargin: '400px' });
+      io.observe(mount);
+    } else {
+      load();
+    }
+  });
+
+  /* -----------------------------------------------------------
      Gallery lightbox — minimal, keyboard dismissable
   ----------------------------------------------------------- */
   var figures = document.querySelectorAll('.gallery figure');

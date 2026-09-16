@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://idahofallsluxuryrvpark.com">
 <link href="https://fonts.googleapis.com/css2?family=Mohave:wght@400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <script>document.documentElement.className+=' js';</script>
-<link rel="stylesheet" href="/iflrv-redesign/assets/css/site.css?v=fcbfb53a">
+<link rel="stylesheet" href="/iflrv-redesign/assets/css/site.css?v=acdd265e">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Campground","name":"Idaho Falls Luxury RV Park",
 "description":"Fifty-nine oversized, fully paved full-hookup RV sites on the Snake River in Idaho Falls, Idaho.",
 "address":{"@type":"PostalAddress","streetAddress":"3000 S Yellowstone Hwy","addressLocality":"Idaho Falls","addressRegion":"ID","postalCode":"83402","addressCountry":"US"},
@@ -163,13 +163,17 @@
   </div>
 </section>
 
-<section class="section-sm section-sand">
+<section class="section-sm section-sand" id="reviews">
   <div class="wrap">
     <div class="section-head center" style="margin-bottom:1.5rem">
       <span class="eyebrow">What guests say</span>
       <h2 style="margin-bottom:.4rem">4.8 out of 5</h2>
-      <p class="mb0">from roughly 910 reviews across Google, RV Life, Campendium and Tripadvisor</p>
+      <p class="mb0">from 942 Google reviews &middot;
+        <a href="https://birdeye.com/idaho-falls-luxury-rv-park-175459169610520" rel="noopener">read them all</a></p>
     </div>
+
+    <!-- Server-rendered and always present: fast, indexable, and still there if
+         the widget is blocked or slow. The live feed loads underneath it. -->
     <div class="grid g3">
       <blockquote class="card" style="padding:1.5rem;margin:0">
         <p style="font-size:.97rem">&ldquo;Spacious, level concrete sites and exceptionally clean
@@ -181,7 +185,19 @@
         <p style="font-size:.97rem">&ldquo;Only complaint is the railroad tracks &mdash; but they give
           you ear plugs.&rdquo;</p></blockquote>
     </div>
-    <div class="proto"><div><b>Verify, then wire this to live data.</b> The 4.8 / ~910 figure is aggregated from third-party listings as of September 2026 and the quotes are paraphrased from public reviews. Before launch, pull the rating from your own Google profile, quote reviewers verbatim with attribution, and link out. I deliberately did <b>not</b> add aggregateRating structured data: Google permits that only for reviews you collect yourself, not third-party aggregates.</div></div>
+
+    <!-- Birdeye live feed. Loads only when scrolled near, so it costs nothing
+         above the fold. Paste the iframe src from Birdeye into data-src. -->
+    <div class="reviews-live mt3" data-birdeye data-src="" data-height="560"
+         data-label="Live guest reviews from Birdeye">
+      <div class="reviews-live-placeholder">
+        <b>Birdeye review feed mounts here</b>
+        <span>Birdeye &rsaquo; Reviews &rsaquo; Widgets &rsaquo; Feed (or Grid/Slider) &rsaquo; Copy code.
+          Paste the iframe <code>src</code> into <code>data-src</code> on this element.</span>
+      </div>
+    </div>
+
+    <div class="proto"><div><b>Use the Birdeye widget for trust, not for SEO.</b> Verified on your profile: 4.8 from <b>942 reviews, all of them Google</b> (Birdeye's own count is 0). Three consequences. (1) Birdeye embeds via <b>iframe</b>, and iframe content is indexed as a separate document &mdash; it adds nothing to this page's crawlable content, which is why the curated quotes above are server-rendered instead. (2) Do <b>not</b> let any widget inject <code>aggregateRating</code>: Google's review-snippet policy says plainly &ldquo;Don't aggregate reviews or ratings from other websites&rdquo;, and these are all Google reviews. (3) Your own site can't earn review stars in results anyway &mdash; Google excludes <code>LocalBusiness</code>/<code>Organization</code> pages where the reviewed entity controls the reviews. The SEO value of Birdeye is generating more Google reviews, which lifts the local pack; the on-site widget is a conversion asset. Replace the three quotes above with verbatim, attributed ones before launch.</div></div>
   </div>
 </section>
 
@@ -406,6 +422,6 @@
   <div class="bookbar-price"><strong>Check availability</strong><span>59 sites &middot; on the Snake River</span></div>
   <a class="btn btn-primary" href="/iflrv-redesign/rates/">Book</a>
 </div>
-<script src="/iflrv-redesign/assets/js/site.js?v=31b1e61d" defer></script>
+<script src="/iflrv-redesign/assets/js/site.js?v=83aa0d75" defer></script>
 </body>
 </html>

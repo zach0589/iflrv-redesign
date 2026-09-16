@@ -508,13 +508,17 @@ def home():
   </div>
 </section>
 
-<section class="section-sm section-sand">
+<section class="section-sm section-sand" id="reviews">
   <div class="wrap">
     <div class="section-head center" style="margin-bottom:1.5rem">
       <span class="eyebrow">What guests say</span>
       <h2 style="margin-bottom:.4rem">4.8 out of 5</h2>
-      <p class="mb0">from roughly 910 reviews across Google, RV Life, Campendium and Tripadvisor</p>
+      <p class="mb0">from 942 Google reviews &middot;
+        <a href="https://birdeye.com/idaho-falls-luxury-rv-park-175459169610520" rel="noopener">read them all</a></p>
     </div>
+
+    <!-- Server-rendered and always present: fast, indexable, and still there if
+         the widget is blocked or slow. The live feed loads underneath it. -->
     <div class="grid g3">
       <blockquote class="card" style="padding:1.5rem;margin:0">
         <p style="font-size:.97rem">&ldquo;Spacious, level concrete sites and exceptionally clean
@@ -526,11 +530,31 @@ def home():
         <p style="font-size:.97rem">&ldquo;Only complaint is the railroad tracks &mdash; but they give
           you ear plugs.&rdquo;</p></blockquote>
     </div>
-    {PROTO('<b>Verify, then wire this to live data.</b> The 4.8 / ~910 figure is aggregated from '
-           'third-party listings as of September 2026 and the quotes are paraphrased from public reviews. '
-           'Before launch, pull the rating from your own Google profile, quote reviewers verbatim with '
-           'attribution, and link out. I deliberately did <b>not</b> add aggregateRating structured data: '
-           'Google permits that only for reviews you collect yourself, not third-party aggregates.')}
+
+    <!-- Birdeye live feed. Loads only when scrolled near, so it costs nothing
+         above the fold. Paste the iframe src from Birdeye into data-src. -->
+    <div class="reviews-live mt3" data-birdeye data-src="" data-height="560"
+         data-label="Live guest reviews from Birdeye">
+      <div class="reviews-live-placeholder">
+        <b>Birdeye review feed mounts here</b>
+        <span>Birdeye &rsaquo; Reviews &rsaquo; Widgets &rsaquo; Feed (or Grid/Slider) &rsaquo; Copy code.
+          Paste the iframe <code>src</code> into <code>data-src</code> on this element.</span>
+      </div>
+    </div>
+
+    {PROTO('<b>Use the Birdeye widget for trust, not for SEO.</b> Verified on your profile: 4.8 from '
+           '<b>942 reviews, all of them Google</b> (Birdeye\'s own count is 0). Three consequences. '
+           '(1) Birdeye embeds via <b>iframe</b>, and iframe content is indexed as a separate document '
+           '&mdash; it adds nothing to this page\'s crawlable content, which is why the curated quotes '
+           'above are server-rendered instead. '
+           '(2) Do <b>not</b> let any widget inject <code>aggregateRating</code>: Google\'s review-snippet '
+           'policy says plainly &ldquo;Don\'t aggregate reviews or ratings from other websites&rdquo;, and '
+           'these are all Google reviews. '
+           '(3) Your own site can\'t earn review stars in results anyway &mdash; Google excludes '
+           '<code>LocalBusiness</code>/<code>Organization</code> pages where the reviewed entity controls '
+           'the reviews. The SEO value of Birdeye is generating more Google reviews, which lifts the local '
+           'pack; the on-site widget is a conversion asset. Replace the three quotes above with verbatim, '
+           'attributed ones before launch.')}
   </div>
 </section>
 
@@ -2060,6 +2084,13 @@ def validate():
                 data = _json.loads(block)
             except ValueError as e:
                 errors.append(f'{rel}: invalid JSON-LD ({e})'); continue
+            # Google: "Don't aggregate reviews or ratings from other websites",
+            # and self-controlled reviews on LocalBusiness/Organization pages are
+            # ineligible for star treatment regardless. A widget that injects this
+            # would put the site out of policy.
+            if 'aggregateRating' in block or '"reviewRating"' in block:
+                errors.append(f'{rel}: review rating markup in JSON-LD violates '
+                              f"Google's review-snippet policy for aggregated reviews")
             if data.get('@type') == 'BreadcrumbList':
                 el = data['itemListElement']
                 for node in el[:-1]:

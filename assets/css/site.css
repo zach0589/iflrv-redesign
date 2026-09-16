@@ -549,3 +549,14 @@ body.has-hero .site-header{position:static}
 @media (max-width:1040px){ .js body:not(.nav-open) .nav{visibility:hidden} .js body.nav-open .nav{visibility:visible} }
 /* the map needs to be operable without a pointer */
 .mapbox-frame:focus-visible{outline:3px solid #1b5d4e;outline-offset:-3px}
+
+/* ============ Birdeye live review feed ============ */
+.reviews-live{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden;min-height:180px}
+.reviews-live iframe{display:block;width:100%;border:0}
+.reviews-live-placeholder{
+  display:grid;gap:.5rem;place-items:center;text-align:center;padding:2.5rem 1.5rem;
+  border:1px dashed var(--line);border-radius:var(--r);background:var(--sand);color:var(--muted);
+}
+.reviews-live-placeholder b{color:var(--ink);font-family:var(--d);font-size:1.15rem}
+.reviews-live-placeholder span{font-size:.85rem;max-width:56ch;line-height:1.6}
+.reviews-live-placeholder code{background:#fff;border:1px solid var(--line);border-radius:4px;padding:.1em .35em;font-size:.92em}
